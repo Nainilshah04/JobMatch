@@ -1,0 +1,507 @@
+{
+  "_meta": {
+    "status": "DRAFT_EVAL_BENCHMARK",
+    "note": "25 evaluation benchmark queries with relevance labels derived via skill & role heuristics across data/jobs.csv. Intended for verification & retrieval evaluation.",
+    "total_queries": 25,
+    "benchmark_dataset_size": 850
+  },
+  "queries": [
+    {
+      "id": 1,
+      "query": "Senior Python Backend Engineer FastAPI",
+      "target_skills": [
+        "Python",
+        "FastAPI",
+        "Docker",
+        "PostgreSQL"
+      ],
+      "relevant_job_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "id": 2,
+      "query": "Go Distributed Systems Microservices gRPC",
+      "target_skills": [
+        "Go",
+        "gRPC",
+        "Kubernetes",
+        "Kafka"
+      ],
+      "relevant_job_ids": [
+        4,
+        9,
+        40,
+        41,
+        46,
+        72,
+        89,
+        90
+      ]
+    },
+    {
+      "id": 3,
+      "query": "Django Backend Developer Celery AWS",
+      "target_skills": [
+        "Python",
+        "Django",
+        "Celery",
+        "AWS"
+      ],
+      "relevant_job_ids": [
+        2,
+        5,
+        13,
+        18,
+        22,
+        23,
+        27,
+        31
+      ]
+    },
+    {
+      "id": 4,
+      "query": "Java Spring Boot Microservices Elasticsearch",
+      "target_skills": [
+        "Java",
+        "Spring Boot",
+        "Kafka",
+        "Elasticsearch"
+      ],
+      "relevant_job_ids": [
+        5,
+        17,
+        30,
+        31,
+        70,
+        76,
+        87,
+        94
+      ]
+    },
+    {
+      "id": 5,
+      "query": "Node.js TypeScript API Developer",
+      "target_skills": [
+        "Node.js",
+        "TypeScript",
+        "Express",
+        "MongoDB"
+      ],
+      "relevant_job_ids": [
+        2,
+        4,
+        21,
+        28,
+        39,
+        59,
+        64,
+        79
+      ]
+    },
+    {
+      "id": 6,
+      "query": "LLM Application Engineer LangChain RAG",
+      "target_skills": [
+        "Python",
+        "LLMs",
+        "LangChain",
+        "OpenAI API"
+      ],
+      "relevant_job_ids": [
+        1,
+        3,
+        7,
+        8,
+        11,
+        12,
+        13,
+        15
+      ]
+    },
+    {
+      "id": 7,
+      "query": "PyTorch Computer Vision Deep Learning",
+      "target_skills": [
+        "Python",
+        "PyTorch",
+        "Transformers",
+        "CUDA"
+      ],
+      "relevant_job_ids": [
+        13,
+        42,
+        67,
+        93,
+        106,
+        121,
+        124,
+        140
+      ]
+    },
+    {
+      "id": 8,
+      "query": "NLP Research Engineer Embeddings Semantic Search",
+      "target_skills": [
+        "Python",
+        "NLP",
+        "Embeddings",
+        "Semantic Search"
+      ],
+      "relevant_job_ids": [
+        1,
+        3,
+        7,
+        8,
+        11,
+        12,
+        13,
+        15
+      ]
+    },
+    {
+      "id": 9,
+      "query": "MLOps Engineer Kubeflow Triton AWS SageMaker",
+      "target_skills": [
+        "Python",
+        "MLflow",
+        "Kubeflow",
+        "Kubernetes"
+      ],
+      "relevant_job_ids": [
+        1,
+        3,
+        7,
+        8,
+        9,
+        11,
+        12,
+        13
+      ]
+    },
+    {
+      "id": 10,
+      "query": "Scikit-Learn Machine Learning Data Scientist",
+      "target_skills": [
+        "Python",
+        "Scikit-Learn",
+        "XGBoost",
+        "Pandas"
+      ],
+      "relevant_job_ids": [
+        3,
+        7,
+        13,
+        15,
+        16,
+        23,
+        27,
+        29
+      ]
+    },
+    {
+      "id": 11,
+      "query": "Snowflake dbt Data Platform Engineer",
+      "target_skills": [
+        "SQL",
+        "dbt",
+        "Snowflake",
+        "BigQuery"
+      ],
+      "relevant_job_ids": [
+        1,
+        3,
+        4,
+        7,
+        9,
+        11,
+        12,
+        14
+      ]
+    },
+    {
+      "id": 12,
+      "query": "Apache Spark Big Data Engineer Airflow",
+      "target_skills": [
+        "Python",
+        "SQL",
+        "Apache Spark",
+        "Airflow"
+      ],
+      "relevant_job_ids": [
+        1,
+        3,
+        4,
+        7,
+        8,
+        9,
+        11,
+        12
+      ]
+    },
+    {
+      "id": 13,
+      "query": "Streaming Data Engineer Kafka Apache Flink",
+      "target_skills": [
+        "Python",
+        "Kafka",
+        "Apache Flink",
+        "AWS Redshift"
+      ],
+      "relevant_job_ids": [
+        1,
+        3,
+        7,
+        8,
+        9,
+        11,
+        12,
+        13
+      ]
+    },
+    {
+      "id": 14,
+      "query": "Databricks Delta Lake ETL Pipeline Developer",
+      "target_skills": [
+        "Python",
+        "SQL",
+        "Databricks",
+        "Delta Lake"
+      ],
+      "relevant_job_ids": [
+        1,
+        2,
+        3,
+        5,
+        7,
+        12,
+        15,
+        16
+      ]
+    },
+    {
+      "id": 15,
+      "query": "ClickHouse Presto Data Warehousing Engineer",
+      "target_skills": [
+        "SQL",
+        "Python",
+        "ClickHouse",
+        "Presto"
+      ],
+      "relevant_job_ids": [
+        1,
+        3,
+        4,
+        7,
+        8,
+        9,
+        11,
+        12
+      ]
+    },
+    {
+      "id": 16,
+      "query": "Kubernetes Terraform Cloud Infrastructure SRE",
+      "target_skills": [
+        "Kubernetes",
+        "Docker",
+        "Terraform",
+        "AWS"
+      ],
+      "relevant_job_ids": [
+        18,
+        20,
+        23,
+        27,
+        33,
+        36,
+        40,
+        41
+      ]
+    },
+    {
+      "id": 17,
+      "query": "Prometheus Grafana Observability Engineer Linux",
+      "target_skills": [
+        "Prometheus",
+        "Grafana",
+        "Linux",
+        "Kubernetes"
+      ],
+      "relevant_job_ids": [
+        1,
+        9,
+        11,
+        16,
+        18,
+        36,
+        40,
+        41
+      ]
+    },
+    {
+      "id": 18,
+      "query": "GCP DevOps ArgoCD Helm Platform Engineer",
+      "target_skills": [
+        "GCP",
+        "Kubernetes",
+        "Helm",
+        "ArgoCD"
+      ],
+      "relevant_job_ids": [
+        3,
+        9,
+        11,
+        14,
+        18,
+        25,
+        34,
+        36
+      ]
+    },
+    {
+      "id": 19,
+      "query": "AWS Security Cloud Architect Compliance",
+      "target_skills": [
+        "AWS",
+        "Terraform",
+        "Bash",
+        "Security"
+      ],
+      "relevant_job_ids": [
+        20,
+        33,
+        36,
+        45,
+        53,
+        60,
+        73,
+        82
+      ]
+    },
+    {
+      "id": 20,
+      "query": "Technical Product Manager Search & Recommender",
+      "target_skills": [
+        "Product Management",
+        "Search Recommenders",
+        "SQL"
+      ],
+      "relevant_job_ids": [
+        6,
+        10,
+        14,
+        15,
+        24,
+        25,
+        29,
+        34
+      ]
+    },
+    {
+      "id": 21,
+      "query": "AI Product Manager LLM Roadmapping",
+      "target_skills": [
+        "AI Product Development",
+        "Product Strategy",
+        "Agile"
+      ],
+      "relevant_job_ids": [
+        6,
+        10,
+        24,
+        55,
+        63,
+        81,
+        84,
+        88
+      ]
+    },
+    {
+      "id": 22,
+      "query": "Growth Product Manager AB Testing User Research",
+      "target_skills": [
+        "Product Strategy",
+        "A/B Testing",
+        "Data Analysis"
+      ],
+      "relevant_job_ids": [
+        6,
+        10,
+        24,
+        55,
+        63,
+        81,
+        84,
+        88
+      ]
+    },
+    {
+      "id": 23,
+      "query": "Full Stack React TypeScript Python Developer",
+      "target_skills": [
+        "Python",
+        "FastAPI",
+        "React",
+        "TypeScript"
+      ],
+      "relevant_job_ids": [
+        1,
+        2,
+        8,
+        11,
+        13,
+        15,
+        19,
+        22
+      ]
+    },
+    {
+      "id": 24,
+      "query": "Next.js Frontend UI Tailwind CSS Developer",
+      "target_skills": [
+        "TypeScript",
+        "React",
+        "Next.js",
+        "Tailwind CSS"
+      ],
+      "relevant_job_ids": [
+        1,
+        2,
+        19,
+        28,
+        35,
+        37,
+        39,
+        47
+      ]
+    },
+    {
+      "id": 25,
+      "query": "GraphQL REST API Frontend Engineer",
+      "target_skills": [
+        "React",
+        "Redux",
+        "TypeScript",
+        "GraphQL"
+      ],
+      "relevant_job_ids": [
+        1,
+        4,
+        19,
+        21,
+        28,
+        35,
+        37,
+        39
+      ]
+    }
+  ]
+}

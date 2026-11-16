@@ -16,17 +16,20 @@ from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
-# Module-level connection pool
+# Module-level connection pool & reachability cache
 _pool: ThreadedConnectionPool | None = None
 _db_connected: bool | None = None
 
 
-def is_db_connected() -> bool:
-    """Check whether PostgreSQL database is reachable."""
+def is_db_connected(force_check: bool = False) -> bool:
+    """Check whether PostgreSQL database is reachable (cached)."""
     global _db_connected
+    if _db_connected is not None and not force_check:
+        return _db_connected
+
     settings = get_settings()
     try:
-        conn = psycopg2.connect(settings.DATABASE_URL, connect_timeout=2)
+        conn = psycopg2.connect(settings.DATABASE_URL, connect_timeout=1)
         conn.close()
         _db_connected = True
         return True
