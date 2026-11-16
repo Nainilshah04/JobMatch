@@ -86,6 +86,15 @@
    - *Decision*: Provided a runtime flag (`cross_encoder` vs `llm`).
    - *Tradeoff*: Cross-encoder executes locally with ~30-50ms latency and zero API cost; LLM reranking provides deep contextual reasoning but incurs higher network latency and per-token API cost.
 
+### Phase 4: LLM Structured Output & Skill Gap Analysis
+10. **Pydantic Schema Validation with Automated Feedback Retries**:
+    - *Decision*: Bound LLM outputs to the `JobExplanation` schema (`match_score`, `matched_skills`, `missing_skills`, `reason`) with up to 2 retries on `ValidationError`, passing the parser error directly back to the model.
+    - *Tradeoff*: Retrying on invalid output prevents corrupted JSON crashes at the expense of extra round-trip latency for malformed responses.
+
+11. **Deterministic Heuristic Fallback**:
+    - *Decision*: Implemented keyword-token skill matching fallback when API keys are unconfigured or provider endpoints time out.
+    - *Tradeoff*: Guarantees 100% system uptime and offline testability without blocking backend services during upstream LLM outages.
+
 ---
 
 ## Quickstart

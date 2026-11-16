@@ -168,3 +168,151 @@ def rerank_with_llm(
     # Sort descending by updated score
     reranked.sort(key=lambda x: x.score, reverse=True)
     return reranked
+
+
+def _generate_heuristic_explanation(query_or_resume: str, job: JobSearchResult) -> JobExplanation:
+    """Generate a deterministic, structured skill-gap analysis when LLM is unavailable.
+    
+    Acts as a resilient fallback ensuring system uptime and predictability in offline/testing modes.
+    """
+    job_skills_list = [s.strip() for s in job.skills.split(",") if s.strip()]
+    query_lower = query_or_resume.lower()
+
+    matched: List[str] = []
+    missing: List[str] = []
+
+    for skill in job_skills_list:
+        # Check word boundaries or simple containment
+        pattern = r"\b" + re.escape(skill.lower()) + r"\b"
+        if re.search(pattern, query_lower):
+            matched.append(skill)
+        else:
+            missing.append(skill)
+
+    # Calculate match score based on skill overlap ratio and title alignment
+    total_skills = len(job_skills_list)
+    overlap_ratio = len(matched) / max(total_skills, 1)
+
+    title_match = any(word.lower() in query_lower for word in job.title.split() if len(word) > 3)
+    base_score = int(overlap_ratio * 70) + (25 if title_match else 5)
+    final_score = max(10, min(95, base_score))
+
+    if matched and missing:
+        reason = (
+            f"Strong profile alignment on key competencies ({', '.join(matched[:3])}). "
+            f"Candidate should develop or highlight experience with {', '.join(missing[:2])} to fully meet requirements."
+        )
+    elif matched and not missing:
+        reason = f"Excellent candidate match! Covers all primary required skills: {', '.join(matched)}."
+    else:
+        reason = (
+            f"Role title '{job.title}' relates to target interest, but candidate profile is missing core competencies: "
+            f"{', '.join(missing[:3])}."
+        )
+
+    return JobExplanation(
+        match_score=final_score,
+        matched_skills=matched,
+        missing_skills=missing,
+        reason=reason,
+    )
+
+
+def explain_job_match(
+    query_or_resume: str,
+    job: JobSearchResult,
+    max_retries: int = 2,
+) -> JobExplanation:
+    """Generate a structured Pydantic-validated explanation of candidate-job fit.
+    
+    Includes automated retries on malformed JSON or schema validation failure.
+    
+    Design Decision (Structured LLM Outputs with Automated Retries):
+    LLM generations can occasionally deviate from strict schema requirements (e.g.
+    missing fields, invalid score ranges, or unescaped characters).
+    We validate the parsed JSON against the Pydantic `JobExplanation` model. If validation
+    fails, the error context is injected into a corrective retry prompt (up to 2 retries).
+    If all retries fail or if no LLM API key is present, the system falls back
+    to a deterministic keyword/skill matching heuristic, guaranteeing zero crashes.
+    """
+    settings = get_settings()
+    if not settings.LLM_API_KEY or settings.LLM_API_KEY == "your_llm_api_key_here":
+        return _generate_heuristic_explanation(query_or_resume, job)
+
+    schema_example = json.dumps(
+        {
+            "match_score": 85,
+            "matched_skills": ["Python", "FastAPI"],
+            "missing_skills": ["Kafka", "Kubernetes"],
+            "reason": "Strong background in backend Python services; candidate lacks distributed streaming experience.",
+        },
+        indent=2,
+    )
+
+    base_prompt = (
+        f"You are an AI career coach and technical hiring assessor.\n"
+        f"Evaluate the fit between this Candidate Profile/Query and the Job Posting.\n\n"
+        f"Candidate Profile / Query:\n\"\"\"{query_or_resume[:1000]}\"\"\"\n\n"
+        f"Job Posting:\n"
+        f"- Title: {job.title}\n"
+        f"- Company: {job.company}\n"
+        f"- Required Skills: {job.skills}\n"
+        f"- Description: {job.description[:400]}\n\n"
+        f"Instructions:\n"
+        f"1. Compare skills and experience.\n"
+        f"2. Assign match_score from 0 to 100.\n"
+        f"3. List matched_skills (present in both) and missing_skills (required by job but missing in profile).\n"
+        f"4. Provide a concise, constructive 2-sentence reason explaining the fit and what to improve.\n"
+        f"Return ONLY a strict JSON object conforming to this schema:\n{schema_example}"
+    )
+
+    current_prompt = base_prompt
+    last_error: Optional[str] = None
+
+    for attempt in range(max_retries + 1):
+        if attempt > 0:
+            logger.warning(f"Retrying LLM structured explanation (attempt {attempt}/{max_retries}) due to: {last_error}")
+            current_prompt = (
+                f"{base_prompt}\n\n"
+                f"[PREVIOUS ATTEMPT FAILED SCHEMA VALIDATION]\n"
+                f"Error: {last_error}\n"
+                f"Please correct the error and return ONLY valid JSON matching the exact schema."
+            )
+
+        raw_response = call_llm(
+            prompt=current_prompt,
+            system_prompt="You are an expert technical evaluator who outputs strict JSON conforming to Pydantic schemas.",
+            json_mode=True,
+            temperature=0.1,
+        )
+
+        if not raw_response:
+            break
+
+        try:
+            json_str = _extract_json_snippet(raw_response)
+            parsed = json.loads(json_str)
+            explanation = JobExplanation.model_validate(parsed)
+            return explanation
+        except (json.JSONDecodeError, ValidationError) as e:
+            last_error = str(e)
+
+    logger.warning("LLM explanation retries exhausted. Using deterministic heuristic explanation.")
+    return _generate_heuristic_explanation(query_or_resume, job)
+
+
+def explain_top_jobs(
+    query_or_resume: str,
+    jobs: List[JobSearchResult],
+    top_n: int = 5,
+) -> List[JobSearchResult]:
+    """Enrich the top-N jobs with structured candidate fit explanations."""
+    enriched: List[JobSearchResult] = []
+    for idx, job in enumerate(jobs):
+        if idx < top_n:
+            explanation = explain_job_match(query_or_resume, job)
+            enriched_job = job.model_copy(update={"match_explanation": explanation})
+            enriched.append(enriched_job)
+        else:
+            enriched.append(job)
+    return enriched
