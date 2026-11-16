@@ -1,7 +1,7 @@
 """Database connection and schema management with pgvector and full-text search.
 
 This module sets up PostgreSQL connection handling, pgvector extension registration,
-and schema initialization with HNSW vector indexing and weighted tsvector GIN indexing.
+schema initialization, and connection health diagnostics.
 """
 
 import contextlib
@@ -18,6 +18,22 @@ logger = logging.getLogger(__name__)
 
 # Module-level connection pool
 _pool: ThreadedConnectionPool | None = None
+_db_connected: bool | None = None
+
+
+def is_db_connected() -> bool:
+    """Check whether PostgreSQL database is reachable."""
+    global _db_connected
+    settings = get_settings()
+    try:
+        conn = psycopg2.connect(settings.DATABASE_URL, connect_timeout=2)
+        conn.close()
+        _db_connected = True
+        return True
+    except Exception as e:
+        logger.debug(f"Database reachability check failed: {e}")
+        _db_connected = False
+        return False
 
 
 def get_connection_pool() -> ThreadedConnectionPool:
@@ -30,6 +46,7 @@ def get_connection_pool() -> ThreadedConnectionPool:
             minconn=1,
             maxconn=10,
             dsn=settings.DATABASE_URL,
+            connect_timeout=3,
         )
     return _pool
 
@@ -62,24 +79,12 @@ def get_db_cursor(commit: bool = False) -> Generator[PgCursor, None, None]:
 
 
 def init_db() -> None:
-    """Create pgvector extension, jobs table, and required search indexes.
-    
-    Design Decisions:
-    1. pgvector extension: Enables native 384-dimensional cosine vector storage and distance operators (<=>).
-    2. Generated tsvector column: Precomputes weighted text tokens (Title=A, Skills=B, Company=C, Description=D)
-       avoiding runtime overhead during full-text queries.
-    3. HNSW index on embedding: Provides fast approximate nearest-neighbors (ANN) search for cosine distance.
-    4. GIN index on tsv: Enables fast full-text inverted index searches.
-    """
+    """Create pgvector extension, jobs table, and required search indexes."""
     settings = get_settings()
     dimension = settings.EMBEDDING_DIMENSION
 
-    # Schema definition statements
     ddl_statements = [
-        # 1. Enable pgvector extension
         "CREATE EXTENSION IF NOT EXISTS vector;",
-        
-        # 2. Create jobs table with structured fields and generated tsvector
         f"""
         CREATE TABLE IF NOT EXISTS jobs (
             id SERIAL PRIMARY KEY,
@@ -99,23 +104,16 @@ def init_db() -> None:
             ) STORED
         );
         """,
-
-        # 3. Full-text search GIN index on weighted tsv
         "CREATE INDEX IF NOT EXISTS jobs_tsv_idx ON jobs USING GIN (tsv);",
-
-        # 4. Fast HNSW vector index for cosine similarity (<=>)
         """
         CREATE INDEX IF NOT EXISTS jobs_embedding_hnsw_idx 
         ON jobs USING hnsw (embedding vector_cosine_ops)
         WITH (m = 16, ef_construction = 64);
         """,
-
-        # 5. Filter indexes for metadata filtering
         "CREATE INDEX IF NOT EXISTS jobs_remote_idx ON jobs (remote);",
         "CREATE INDEX IF NOT EXISTS jobs_location_idx ON jobs (location);"
     ]
 
-    logger.info("Initializing database schema and indexes...")
     with get_db_cursor(commit=True) as cur:
         for stmt in ddl_statements:
             cur.execute(stmt)

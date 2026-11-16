@@ -1,21 +1,27 @@
 """Retrieval module implementing Vector, Keyword, and Hybrid (RRF) search.
 
-Provides three distinct retrieval modes over the PostgreSQL `jobs` table:
-1. Vector Search: Dense semantic cosine similarity using pgvector.
-2. Keyword Search: Full-text search with ts_rank and GIN indexing.
-3. Hybrid Search: Reciprocal Rank Fusion (RRF, k=60) combining vector and keyword ranks.
+Provides three distinct retrieval modes over the PostgreSQL `jobs` table,
+with an automatic graceful fallback to the local dataset if the database is offline.
 """
 
+import csv
 from functools import lru_cache
 import logging
+import os
+import re
 from typing import Dict, List, Optional, Tuple
+import numpy as np
 from sentence_transformers import SentenceTransformer
 
 from app.config import get_settings
-from app.db import get_db_connection
+from app.db import get_db_connection, is_db_connected
 from app.models import JobSearchResult
 
 logger = logging.getLogger(__name__)
+
+# Cached in-memory dataset for offline/local resilience
+_LOCAL_JOBS_CACHE: Optional[List[dict]] = None
+_LOCAL_EMBEDDINGS_CACHE: Optional[np.ndarray] = None
 
 
 @lru_cache(maxsize=1)
@@ -27,15 +33,172 @@ def get_embedding_model() -> SentenceTransformer:
 
 
 def compute_query_embedding(text: str) -> List[float]:
-    """Generate a normalized 384-dimensional vector embedding for search input.
-    
-    If full resume text is passed, truncate to the first 500 characters
-    to retain key skills and role summary within the token limit.
-    """
+    """Generate a normalized 384-dimensional vector embedding for search input."""
     clean_text = " ".join(text[:500].split())
     model = get_embedding_model()
     vector = model.encode(clean_text, normalize_embeddings=True)
     return vector.tolist()
+
+
+def _load_local_jobs() -> Tuple[List[dict], np.ndarray]:
+    """Load and precompute local dataset embeddings for offline resilience."""
+    global _LOCAL_JOBS_CACHE, _LOCAL_EMBEDDINGS_CACHE
+    if _LOCAL_JOBS_CACHE is not None and _LOCAL_EMBEDDINGS_CACHE is not None:
+        return _LOCAL_JOBS_CACHE, _LOCAL_EMBEDDINGS_CACHE
+
+    csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "jobs.csv")
+    if not os.path.exists(csv_path):
+        from scripts.generate_jobs import generate_jobs_dataset
+        generate_jobs_dataset(csv_path, count=850)
+
+    jobs: List[dict] = []
+    with open(csv_path, mode="r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            jobs.append({
+                "id": int(row["id"]),
+                "title": row["title"],
+                "company": row["company"],
+                "location": row["location"],
+                "description": row["description"],
+                "skills": row["skills"],
+                "salary": row["salary"] if row.get("salary") else None,
+                "remote": str(row.get("remote", "")).lower() == "true",
+            })
+
+    _LOCAL_JOBS_CACHE = jobs
+
+    # Pre-embed first 200 jobs for instant local search if not connected to Neon
+    texts = [
+        f"Title: {j['title']} | Company: {j['company']} | Skills: {j['skills']} | {j['description'][:300]}"
+        for j in jobs
+    ]
+    model = get_embedding_model()
+    _LOCAL_EMBEDDINGS_CACHE = model.encode(texts, batch_size=64, normalize_embeddings=True)
+    return _LOCAL_JOBS_CACHE, _LOCAL_EMBEDDINGS_CACHE
+
+
+def _search_local(
+    query_text: str,
+    top_k: int = 10,
+    mode: str = "hybrid",
+    location: Optional[str] = None,
+    remote: Optional[bool] = None,
+) -> List[JobSearchResult]:
+    """Perform in-memory retrieval when PostgreSQL database is unreachable."""
+    jobs, embeddings = _load_local_jobs()
+
+    # Filter candidate indices
+    candidate_indices = []
+    for idx, j in enumerate(jobs):
+        if location and location.lower() not in j["location"].lower():
+            continue
+        if remote is not None and j["remote"] != remote:
+            continue
+        candidate_indices.append(idx)
+
+    if not candidate_indices:
+        return []
+
+    # Vector scoring
+    query_vec = np.array(compute_query_embedding(query_text))
+    candidate_embeddings = embeddings[candidate_indices]
+    cosine_sims = np.dot(candidate_embeddings, query_vec)
+
+    # Keyword scoring
+    query_tokens = set(re.findall(r"\w+", query_text.lower()))
+    keyword_scores = []
+    for idx in candidate_indices:
+        j = jobs[idx]
+        title_toks = set(re.findall(r"\w+", j["title"].lower()))
+        skill_toks = set(re.findall(r"\w+", j["skills"].lower()))
+        desc_toks = set(re.findall(r"\w+", j["description"].lower()))
+
+        score = (
+            len(query_tokens & title_toks) * 3.0
+            + len(query_tokens & skill_toks) * 2.0
+            + len(query_tokens & desc_toks) * 0.5
+        )
+        keyword_scores.append(score)
+
+    keyword_scores = np.array(keyword_scores)
+
+    # Produce ranking according to requested mode
+    if mode == "vector":
+        sorted_order = np.argsort(-cosine_sims)[:top_k]
+        results = []
+        for i in sorted_order:
+            j = jobs[candidate_indices[i]]
+            results.append(
+                JobSearchResult(
+                    id=j["id"],
+                    title=j["title"],
+                    company=j["company"],
+                    location=j["location"],
+                    description=j["description"],
+                    skills=j["skills"],
+                    salary=j["salary"],
+                    remote=j["remote"],
+                    score=round(float(cosine_sims[i]), 4),
+                    retrieval_mode="vector",
+                )
+            )
+        return results
+
+    if mode == "keyword":
+        sorted_order = np.argsort(-keyword_scores)[:top_k]
+        results = []
+        for i in sorted_order:
+            j = jobs[candidate_indices[i]]
+            results.append(
+                JobSearchResult(
+                    id=j["id"],
+                    title=j["title"],
+                    company=j["company"],
+                    location=j["location"],
+                    description=j["description"],
+                    skills=j["skills"],
+                    salary=j["salary"],
+                    remote=j["remote"],
+                    score=round(float(keyword_scores[i]), 4),
+                    retrieval_mode="keyword",
+                )
+            )
+        return results
+
+    # Hybrid RRF (k=60)
+    vec_rank_order = np.argsort(-cosine_sims)
+    kw_rank_order = np.argsort(-keyword_scores)
+
+    rrf_scores: Dict[int, float] = {}
+    rrf_k = 60
+
+    for rank, pos in enumerate(vec_rank_order, start=1):
+        rrf_scores[pos] = rrf_scores.get(pos, 0.0) + (1.0 / (rrf_k + rank))
+
+    for rank, pos in enumerate(kw_rank_order, start=1):
+        rrf_scores[pos] = rrf_scores.get(pos, 0.0) + (1.0 / (rrf_k + rank))
+
+    sorted_by_rrf = sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
+
+    results = []
+    for pos, rrf_val in sorted_by_rrf:
+        j = jobs[candidate_indices[pos]]
+        results.append(
+            JobSearchResult(
+                id=j["id"],
+                title=j["title"],
+                company=j["company"],
+                location=j["location"],
+                description=j["description"],
+                skills=j["skills"],
+                salary=j["salary"],
+                remote=j["remote"],
+                score=round(float(rrf_val), 6),
+                retrieval_mode="hybrid",
+            )
+        )
+    return results
 
 
 def search_vector(
@@ -44,13 +207,11 @@ def search_vector(
     location: Optional[str] = None,
     remote: Optional[bool] = None,
 ) -> List[JobSearchResult]:
-    """Retrieve jobs using dense cosine similarity via pgvector.
-    
-    Design Decision (Score calculation):
-    pgvector cosine distance operator `<=>` yields (1 - cosine_similarity).
-    We calculate similarity score as: `1.0 - (embedding <=> query_vec)`,
-    providing an intuitive 0.0 to 1.0 relevance metric.
-    """
+    """Retrieve jobs using dense cosine similarity via pgvector (or fallback)."""
+    if not is_db_connected():
+        logger.info("Database unreachable. Executing search_vector via local fallback engine.")
+        return _search_local(query_text, top_k=top_k, mode="vector", location=location, remote=remote)
+
     query_vector = compute_query_embedding(query_text)
     loc_filter = f"%{location.strip()}%" if location else None
 
@@ -107,11 +268,11 @@ def search_keyword(
     location: Optional[str] = None,
     remote: Optional[bool] = None,
 ) -> List[JobSearchResult]:
-    """Retrieve jobs using PostgreSQL full-text search and ts_rank on weighted tsv.
-    
-    Uses `websearch_to_tsquery` to support natural search phrasing, boolean operators,
-    and quoted phrases without throwing syntax errors on freeform user input.
-    """
+    """Retrieve jobs using PostgreSQL full-text search and ts_rank (or fallback)."""
+    if not is_db_connected():
+        logger.info("Database unreachable. Executing search_keyword via local fallback engine.")
+        return _search_local(query_text, top_k=top_k, mode="keyword", location=location, remote=remote)
+
     clean_query = query_text.strip()
     if not clean_query:
         return []
@@ -180,16 +341,11 @@ def search_hybrid(
     location: Optional[str] = None,
     remote: Optional[bool] = None,
 ) -> List[JobSearchResult]:
-    """Retrieve jobs using Reciprocal Rank Fusion (RRF, k=60) combining vector and keyword search.
-    
-    Design Decision (Reciprocal Rank Fusion):
-    Cosine similarity scores (bounded [0, 1]) and ts_rank scores (unbounded [0, >10])
-    exist on fundamentally different scales and cannot be directly summed or multiplied.
-    RRF solves this scale-mismatch by relying strictly on ordinal rank positions:
-        RRF_Score(d) = SUM_m [ 1 / (k + rank_m(d)) ]
-    where k=60 (Cormack et al.) penalizes lower-ranked items while stabilizing
-    outlier ranks across disparate retrieval modalities.
-    """
+    """Retrieve jobs using Reciprocal Rank Fusion (RRF, k=60) combining vector and keyword search."""
+    if not is_db_connected():
+        logger.info("Database unreachable. Executing search_hybrid via local fallback engine.")
+        return _search_local(query_text, top_k=top_k, mode="hybrid", location=location, remote=remote)
+
     # 1. Fetch top candidates from both modalities
     vector_results = search_vector(
         query_text=query_text,
@@ -205,7 +361,6 @@ def search_hybrid(
     )
 
     # 2. Accumulate RRF scores
-    # candidate_map stores: job_id -> (job_record, cumulative_rrf_score)
     candidate_map: Dict[int, Tuple[JobSearchResult, float]] = {}
 
     for rank, item in enumerate(vector_results, start=1):
