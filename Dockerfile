@@ -1,49 +1,43 @@
 # ==========================================
-# JobMatch Production Dockerfile
+# JobMatch Lightweight Production Dockerfile
+# Optimized for 512MB RAM Cloud Free Tiers (Render)
 # ==========================================
 
 FROM python:3.11-slim
 
-# Prevent Python from writing .pyc files and enable unbuffered logging
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=8000 \
-    HF_HUB_DISABLE_TELEMETRY=1
+    PORT=10000 \
+    HF_HUB_DISABLE_TELEMETRY=1 \
+    OMP_NUM_THREADS=1 \
+    MALLOC_ARENA_MAX=2
 
 WORKDIR /app
 
-# Install system dependencies required for psycopg2 and C builds
+# Install minimal system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies first for optimal Docker layer caching
-COPY requirements.txt .
+# Install CPU-only PyTorch first to save ~1.5GB disk and ~350MB runtime RAM
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 
-# Pre-cache SentenceTransformer and Cross-Encoder model weights inside the image
-# This guarantees instant container boot times on cloud platforms like Render
-RUN python -c "\
-from sentence_transformers import SentenceTransformer, CrossEncoder; \
-SentenceTransformer('all-MiniLM-L6-v2'); \
-CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2'); \
-print('Pre-cached all-MiniLM-L6-v2 and cross-encoder models successfully.')"
+# Install application requirements
+COPY requirements.txt .
+# Filter out torch from requirements.txt as it is already installed in CPU-only mode
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application source code and datasets
+# Copy source code and precomputed embeddings
 COPY app/ app/
 COPY data/ data/
 COPY eval/ eval/
 COPY scripts/ scripts/
 
-# Expose the configured HTTP port
-EXPOSE 8000
+# Expose Render standard port
+EXPOSE 10000
 
-# Health check to ensure service readiness
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health || exit 1
-
-# Start production FastAPI server using uvicorn
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
+# Start production FastAPI server listening on 0.0.0.0:${PORT:-10000}
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}"]

@@ -11,7 +11,11 @@ import os
 import re
 from typing import Dict, List, Optional, Tuple
 import numpy as np
+import torch
 from sentence_transformers import SentenceTransformer
+
+# Limit PyTorch CPU threads to 1 to stay strictly below 512MB RAM on Render
+torch.set_num_threads(1)
 
 from app.config import get_settings
 from app.db import get_db_connection, is_db_connected
@@ -68,13 +72,17 @@ def _load_local_jobs() -> Tuple[List[dict], np.ndarray]:
 
     _LOCAL_JOBS_CACHE = jobs
 
-    # Pre-embed first 200 jobs for instant local search if not connected to Neon
-    texts = [
-        f"Title: {j['title']} | Company: {j['company']} | Skills: {j['skills']} | {j['description'][:300]}"
-        for j in jobs
-    ]
-    model = get_embedding_model()
-    _LOCAL_EMBEDDINGS_CACHE = model.encode(texts, batch_size=64, normalize_embeddings=True)
+    # Load precomputed embeddings to prevent runtime encoding memory spikes
+    emb_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "job_embeddings.npy")
+    if os.path.exists(emb_path):
+        _LOCAL_EMBEDDINGS_CACHE = np.load(emb_path)
+    else:
+        texts = [
+            f"Title: {j['title']} | Company: {j['company']} | Skills: {j['skills']} | {j['description'][:300]}"
+            for j in jobs
+        ]
+        model = get_embedding_model()
+        _LOCAL_EMBEDDINGS_CACHE = model.encode(texts, batch_size=32, normalize_embeddings=True)
     return _LOCAL_JOBS_CACHE, _LOCAL_EMBEDDINGS_CACHE
 
 

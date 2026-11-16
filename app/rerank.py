@@ -8,7 +8,11 @@ from functools import lru_cache
 import logging
 import math
 from typing import List, Literal, Tuple
+import torch
 from sentence_transformers import CrossEncoder
+
+# Limit PyTorch threads to 1 for 512MB RAM compliance
+torch.set_num_threads(1)
 
 from app.llm import rerank_with_llm
 from app.models import JobSearchResult
