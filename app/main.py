@@ -7,15 +7,17 @@ Provides production-ready REST endpoints:
 - GET /: Serves modern job search interface
 """
 
+import io
 import logging
 import os
 import time
 from contextlib import asynccontextmanager
 from typing import List
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from pypdf import PdfReader
 
 from app.config import get_settings
 from app.db import init_db, get_db_cursor
@@ -231,6 +233,46 @@ def explain_single_job(payload: ExplainRequest):
         )
 
     return explain_job_match(payload.query_or_resume, job_result)
+
+
+@app.post("/upload-resume", tags=["Resume"])
+async def upload_resume_pdf(file: UploadFile = File(...)):
+    """Extract candidate background text from uploaded PDF resume."""
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only PDF resume documents (.pdf) are supported.",
+        )
+
+    try:
+        content = await file.read()
+        reader = PdfReader(io.BytesIO(content))
+        extracted_text = ""
+        for page in reader.pages:
+            t = page.extract_text()
+            if t:
+                extracted_text += t + "\n"
+
+        extracted_text = extracted_text.strip()
+        if not extracted_text:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Could not extract readable text from PDF. Ensure the file contains text (not scanned images).",
+            )
+
+        return {
+            "filename": file.filename,
+            "character_count": len(extracted_text),
+            "text": extracted_text[:3500],
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error parsing PDF resume: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process PDF: {str(e)}",
+        )
 
 
 @app.get("/", tags=["Frontend"])

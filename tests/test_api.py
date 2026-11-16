@@ -81,3 +81,13 @@ def test_search_hybrid_mock_pipeline(mock_hybrid):
     # Ensure explanation is integrated into result
     assert data["results"][0]["match_explanation"] is not None
     assert "Python" in data["results"][0]["match_explanation"]["matched_skills"]
+
+
+def test_upload_resume_invalid_format():
+    """Verify that non-PDF files are rejected with 400."""
+    response = client.post(
+        "/upload-resume",
+        files={"file": ("resume.txt", b"plain text content", "text/plain")},
+    )
+    assert response.status_code == 400
+    assert "Only PDF" in response.json()["detail"]

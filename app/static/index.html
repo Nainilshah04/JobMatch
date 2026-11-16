@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jobs & Internships — JobMatch (Powered by AI Matching)</title>
+  <title>JobMatch — Opportunities, Jobs & Internships</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -11,17 +11,16 @@
     :root {
       --bg-page: #f8fafc;
       --bg-card: #ffffff;
-      --border-color: #e2e8f0;
+      --border: #e2e8f0;
       --border-hover: #cbd5e1;
       --text-heading: #0f172a;
       --text-body: #334155;
       --text-muted: #64748b;
       --text-light: #94a3b8;
-      --unstop-blue: #1c4980;
-      --unstop-blue-light: #e8f0fe;
-      --unstop-primary: #0073e6;
-      --unstop-purple: #7c3aed;
-      --unstop-purple-bg: #f5f3ff;
+      --brand-blue: #1c4980;
+      --brand-primary: #0073e6;
+      --brand-purple: #7c3aed;
+      --brand-purple-bg: #f5f3ff;
       --success: #16a34a;
       --success-bg: #f0fdf4;
       --warning: #d97706;
@@ -42,11 +41,11 @@
       display: flex;
     }
 
-    /* Left Sidebar Navigation (Unstop style) */
+    /* Left Sidebar Navigation */
     aside.sidebar {
-      width: 240px;
+      width: 250px;
       background: #ffffff;
-      border-right: 1px solid var(--border-color);
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       position: sticky;
@@ -55,37 +54,33 @@
       flex-shrink: 0;
       z-index: 40;
     }
-    .sidebar-header {
+    .sidebar-brand {
       padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #f1f5f9;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid #f1f5f9;
     }
-    .unstop-logo {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
+    .logo-text {
       text-decoration: none;
-      font-size: 1.4rem;
+      font-size: 1.45rem;
       font-weight: 800;
-      color: var(--unstop-blue);
+      color: var(--brand-blue);
       letter-spacing: -0.03em;
     }
-    .unstop-logo span.accent {
-      color: var(--unstop-primary);
+    .logo-text span { color: var(--brand-primary); }
+
+    .post-action {
+      padding: 1rem 1.25rem 0.5rem;
     }
-    .post-btn-wrapper {
-      padding: 1rem 1.25rem;
-    }
-    .btn-post-job {
+    .btn-resume-cta {
       width: 100%;
       background: #ffffff;
       border: 1.5px solid #c7d2fe;
-      color: var(--unstop-purple);
-      padding: 0.55rem;
+      color: var(--brand-purple);
+      padding: 0.6rem;
       border-radius: 9999px;
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
@@ -94,23 +89,23 @@
       gap: 0.4rem;
       transition: all 0.15s;
     }
-    .btn-post-job:hover {
-      background: var(--unstop-purple-bg);
-      border-color: var(--unstop-purple);
+    .btn-resume-cta:hover {
+      background: var(--brand-purple-bg);
+      border-color: var(--brand-purple);
     }
 
-    .nav-menu {
+    .nav-list {
       flex: 1;
-      padding: 0.5rem 0.75rem;
+      padding: 0.75rem 0.85rem;
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
       overflow-y: auto;
     }
-    .nav-item {
+    .nav-btn {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      justify-content: space-between;
       padding: 0.65rem 0.85rem;
       border-radius: var(--radius-md);
       color: var(--text-muted);
@@ -119,52 +114,61 @@
       font-weight: 500;
       transition: all 0.15s;
       cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
     }
-    .nav-item:hover {
+    .nav-btn:hover {
       background: #f1f5f9;
       color: var(--text-heading);
     }
-    .nav-item.active {
+    .nav-btn.active {
       background: #eff6ff;
-      color: var(--unstop-primary);
+      color: var(--brand-primary);
       font-weight: 600;
     }
-    .nav-item-icon {
-      font-size: 1.05rem;
-      width: 20px;
-      text-align: center;
+    .nav-btn-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .nav-counter {
+      background: #fee2e2;
+      color: #ef4444;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 9999px;
     }
 
     .sidebar-footer {
-      padding: 1rem;
-      border-top: 1px solid var(--border-color);
+      padding: 1rem 1.25rem;
+      border-top: 1px solid #f1f5f9;
+      font-size: 0.8rem;
     }
-    .banner-mini {
-      background: #f8fafc;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 0.75rem;
-      font-size: 0.75rem;
+    .arch-link {
       color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
     }
-    .banner-mini strong {
-      color: var(--text-heading);
-      display: block;
-      margin-bottom: 0.2rem;
-    }
+    .arch-link:hover { color: var(--brand-primary); }
 
-    /* Main View Area */
-    .main-wrapper {
+    /* Main Area */
+    .main-body {
       flex: 1;
       display: flex;
       flex-direction: column;
       min-width: 0;
     }
 
-    /* Top Unstop Bar */
-    header.top-bar {
+    /* Top Bar */
+    header.header-bar {
       background: #ffffff;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border);
       padding: 0.75rem 2rem;
       display: flex;
       align-items: center;
@@ -173,12 +177,12 @@
       top: 0;
       z-index: 30;
     }
-    .top-search-box {
+    .search-wrapper {
       flex: 1;
-      max-width: 520px;
+      max-width: 540px;
       position: relative;
     }
-    .top-search-input {
+    .header-search {
       width: 100%;
       background: #f1f5f9;
       border: 1px solid transparent;
@@ -190,12 +194,12 @@
       color: var(--text-heading);
       transition: all 0.15s;
     }
-    .top-search-input:focus {
+    .header-search:focus {
       background: #ffffff;
-      border-color: var(--unstop-primary);
+      border-color: var(--brand-primary);
       box-shadow: 0 0 0 3px rgba(0, 115, 230, 0.1);
     }
-    .top-search-icon {
+    .header-search-icon {
       position: absolute;
       left: 0.85rem;
       top: 50%;
@@ -206,12 +210,12 @@
     .top-actions {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.75rem;
     }
-    .btn-business {
+    .btn-wishlist-top {
       background: #ffffff;
-      border: 1px solid var(--border-color);
-      color: var(--unstop-blue);
+      border: 1px solid var(--border);
+      color: var(--text-heading);
       padding: 0.45rem 0.95rem;
       border-radius: 9999px;
       font-size: 0.82rem;
@@ -219,13 +223,13 @@
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 0.35rem;
+      gap: 0.4rem;
     }
-    .btn-login {
-      background: var(--unstop-primary);
+    .btn-search-primary {
+      background: var(--brand-primary);
       color: #ffffff;
       border: none;
-      padding: 0.45rem 1.25rem;
+      padding: 0.45rem 1.35rem;
       border-radius: 9999px;
       font-size: 0.85rem;
       font-weight: 600;
@@ -233,65 +237,61 @@
       display: flex;
       align-items: center;
       gap: 0.35rem;
+      transition: background 0.15s;
     }
-    .btn-login:hover {
-      background: #005bb5;
-    }
+    .btn-search-primary:hover { background: #005bb5; }
 
-    /* Content Layout */
-    .content-area {
-      max-width: 1280px;
+    /* Page Content */
+    .content-box {
+      max-width: 1260px;
       width: 100%;
       margin: 0 auto;
       padding: 1.5rem 2rem;
     }
 
-    /* Breadcrumbs */
     .breadcrumbs {
       font-size: 0.82rem;
       color: var(--text-light);
       display: flex;
       align-items: center;
       gap: 0.4rem;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
     }
-    .breadcrumbs a {
-      color: var(--text-muted);
-      text-decoration: none;
+    .breadcrumbs span.current {
+      color: var(--text-heading);
+      font-weight: 600;
     }
-    .breadcrumbs a:hover { color: var(--unstop-primary); }
 
-    /* Page Header */
     .page-title {
-      font-size: 1.85rem;
+      font-size: 1.75rem;
       font-weight: 800;
       color: var(--text-heading);
       letter-spacing: -0.03em;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.2rem;
     }
     .page-subtitle {
-      font-size: 0.92rem;
+      font-size: 0.9rem;
       color: var(--text-muted);
       margin-bottom: 1.25rem;
     }
 
-    /* Unstop Horizontal Category Pills */
-    .category-pills-row {
+    /* Category Filter Pills (Unstop style) */
+    .cat-pills-row {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.5rem;
       overflow-x: auto;
-      padding-bottom: 0.5rem;
+      padding-bottom: 0.4rem;
       margin-bottom: 1.25rem;
       scrollbar-width: thin;
     }
     .cat-pill {
       background: #ffffff;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       color: var(--text-body);
       font-size: 0.82rem;
       font-weight: 500;
-      padding: 0.45rem 1rem;
+      padding: 0.4rem 0.95rem;
       border-radius: 9999px;
       white-space: nowrap;
       cursor: pointer;
@@ -301,151 +301,184 @@
       transition: all 0.15s;
     }
     .cat-pill:hover, .cat-pill.active {
-      border-color: var(--unstop-primary);
-      color: var(--unstop-primary);
+      border-color: var(--brand-primary);
+      color: var(--brand-primary);
       background: #f0f7ff;
     }
 
-    /* Unstop Location / Resume Promo Banner */
-    .promo-banner {
+    /* Resume Upload & Match Banner */
+    .resume-prompt-card {
       background: #ffffff;
       border: 1px solid #e9d5ff;
       border-radius: var(--radius-lg);
-      padding: 0.9rem 1.25rem;
+      padding: 1rem 1.25rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
     }
-    .promo-content {
+    .resume-prompt-left {
       display: flex;
       align-items: center;
-      gap: 0.65rem;
+      gap: 0.75rem;
       font-size: 0.88rem;
-      color: var(--text-body);
-    }
-    .sparkle-icon {
-      color: var(--unstop-purple);
-      font-size: 1.1rem;
-    }
-    .promo-link {
-      color: var(--unstop-purple);
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: underline;
     }
 
-    /* Main Grid: Job Feed + Right Featured Sidebar */
-    .grid-layout {
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 1.75rem;
-    }
-    @media (max-width: 1024px) {
-      .grid-layout { grid-template-columns: 1fr; }
-      .right-sidebar { display: none; }
-    }
-
-    /* Search & Filter Controls */
-    .filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.6rem;
-      margin-bottom: 1.25rem;
-    }
-    .filter-chip-btn {
+    /* Expandable PDF + Text Resume Panel */
+    .resume-drawer {
       background: #ffffff;
-      border: 1px solid var(--border-color);
-      color: var(--text-body);
-      font-size: 0.82rem;
-      font-weight: 500;
-      padding: 0.4rem 0.85rem;
-      border-radius: 9999px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .filter-chip-btn.active-filter {
-      background: #eff6ff;
-      border-color: #93c5fd;
-      color: var(--unstop-primary);
-      font-weight: 600;
-    }
-    .filter-count-badge {
-      background: var(--unstop-primary);
-      color: #ffffff;
-      font-size: 0.68rem;
-      font-weight: 700;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Interactive Resume Drawer */
-    .resume-box {
-      background: #ffffff;
-      border: 1.5px dashed #c7d2fe;
+      border: 1.5px solid #c7d2fe;
       border-radius: var(--radius-lg);
-      padding: 1.25rem;
+      padding: 1.5rem;
       margin-bottom: 1.5rem;
       display: none;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.05);
     }
-    .resume-box h3 {
-      font-size: 0.95rem;
+    .resume-drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .resume-drawer-header h3 {
+      font-size: 1.05rem;
       font-weight: 700;
-      color: var(--unstop-blue);
-      margin-bottom: 0.35rem;
+      color: var(--brand-blue);
       display: flex;
       align-items: center;
       gap: 0.4rem;
     }
+    
+    /* PDF Drag & Drop Zone */
+    .pdf-dropzone {
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 1.5rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      background: #f8fafc;
+      transition: all 0.15s;
+      margin-bottom: 1rem;
+    }
+    .pdf-dropzone:hover, .pdf-dropzone.dragover {
+      border-color: var(--brand-primary);
+      background: #f0f7ff;
+    }
+    .dropzone-icon {
+      font-size: 2rem;
+      margin-bottom: 0.4rem;
+      color: var(--brand-primary);
+    }
+    .dropzone-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-heading);
+      margin-bottom: 0.2rem;
+    }
+    .dropzone-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    #pdf-file-input { display: none; }
+
+    .resume-or-divider {
+      text-align: center;
+      position: relative;
+      margin: 1rem 0;
+    }
+    .resume-or-divider::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+      z-index: 1;
+    }
+    .resume-or-divider span {
+      background: #ffffff;
+      position: relative;
+      z-index: 2;
+      padding: 0 0.75rem;
+      font-size: 0.75rem;
+      color: var(--text-light);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
     .resume-textarea {
       width: 100%;
       background: #f8fafc;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: 0.75rem;
       font-family: inherit;
       font-size: 0.85rem;
       color: var(--text-heading);
-      min-height: 100px;
+      min-height: 90px;
       outline: none;
-      margin: 0.5rem 0;
     }
     .resume-textarea:focus {
       background: #ffffff;
-      border-color: var(--unstop-primary);
+      border-color: var(--brand-primary);
     }
-    .resume-actions {
+    .drawer-actions {
       display: flex;
       justify-content: flex-end;
       gap: 0.5rem;
+      margin-top: 1rem;
     }
 
-    /* Unstop Job Card */
-    .job-list {
+    /* Filter Bar */
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .filter-select {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text-body);
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 0.45rem 0.85rem;
+      border-radius: 9999px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Content Grid */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 310px;
+      gap: 1.5rem;
+    }
+    @media (max-width: 1024px) {
+      .content-grid { grid-template-columns: 1fr; }
+      .sidebar-right { display: none; }
+    }
+
+    /* Unstop Job Cards Feed */
+    .jobs-feed {
       display: flex;
       flex-direction: column;
       gap: 1rem;
     }
-    .unstop-card {
+    .job-card {
       background: #ffffff;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       padding: 1.25rem 1.5rem;
       transition: all 0.2s ease;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-      position: relative;
     }
-    .unstop-card:hover {
+    .job-card:hover {
       border-color: var(--border-hover);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
       transform: translateY(-1px);
     }
     .card-top {
@@ -453,108 +486,104 @@
       justify-content: space-between;
       align-items: flex-start;
       gap: 1rem;
-      margin-bottom: 0.65rem;
+      margin-bottom: 0.5rem;
     }
-    .role-title {
+    .job-title {
       font-size: 1.15rem;
       font-weight: 700;
       color: var(--text-heading);
       margin-bottom: 0.2rem;
       cursor: pointer;
     }
-    .role-title:hover {
-      color: var(--unstop-primary);
-    }
-    .company-name {
+    .job-title:hover { color: var(--brand-primary); }
+    .company-title {
       font-size: 0.88rem;
       color: var(--text-muted);
       font-weight: 500;
     }
-    .company-logo {
-      width: 48px;
-      height: 48px;
+    .company-avatar {
+      width: 46px;
+      height: 46px;
       border-radius: 10px;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--border);
       background: #f8fafc;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 1.15rem;
-      color: var(--unstop-blue);
+      font-size: 1.1rem;
+      color: var(--brand-blue);
       flex-shrink: 0;
     }
 
-    /* Meta Details Row */
-    .card-meta-row {
+    .meta-badges {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 1rem;
-      margin-bottom: 0.85rem;
+      gap: 0.85rem;
+      margin-bottom: 0.75rem;
       font-size: 0.82rem;
       color: var(--text-muted);
     }
-    .meta-item {
+    .badge-icon {
       display: flex;
       align-items: center;
       gap: 0.35rem;
     }
 
-    /* Skill tags */
-    .skills-badges {
+    .skill-chips {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-bottom: 0.85rem;
+      gap: 0.35rem;
+      margin-bottom: 0.75rem;
     }
-    .badge-skill {
+    .skill-badge {
       background: #f1f5f9;
       color: #475569;
       font-size: 0.75rem;
       font-weight: 500;
-      padding: 0.2rem 0.6rem;
+      padding: 0.2rem 0.55rem;
       border-radius: var(--radius-sm);
     }
 
-    /* Match Analysis Accordion (Unstop Style) */
-    .match-breakdown {
+    /* Match Quality Box */
+    .match-box {
       background: #f8fafc;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: 0.85rem 1rem;
       margin-bottom: 0.85rem;
     }
-    .match-header {
+    .match-box-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 0.82rem;
       margin-bottom: 0.5rem;
     }
-    .match-score-pill {
+    .score-chip {
       background: var(--success-bg);
       color: var(--success);
       font-weight: 700;
-      padding: 0.2rem 0.6rem;
+      padding: 0.2rem 0.65rem;
       border-radius: 9999px;
       border: 1px solid #bbf7d0;
       font-size: 0.78rem;
     }
-    .match-skills-grid {
+    .match-skills-columns {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0.5rem;
       margin-bottom: 0.5rem;
     }
-    .match-group-label {
+    .column-title {
       font-size: 0.7rem;
       color: var(--text-light);
       text-transform: uppercase;
       font-weight: 600;
       margin-bottom: 0.2rem;
     }
-    .chip-matched {
+    .chip-match {
       background: #dcfce7;
       color: #15803d;
       font-size: 0.72rem;
@@ -564,7 +593,7 @@
       display: inline-block;
       margin: 0.1rem;
     }
-    .chip-missing {
+    .chip-gap {
       background: #fef3c7;
       color: #b45309;
       font-size: 0.72rem;
@@ -574,15 +603,14 @@
       display: inline-block;
       margin: 0.1rem;
     }
-    .match-reason-text {
+    .match-reason {
       font-size: 0.82rem;
       color: var(--text-body);
-      border-top: 1px solid #e2e8f0;
+      border-top: 1px solid var(--border);
       padding-top: 0.5rem;
     }
 
-    /* Footer Row */
-    .card-bottom {
+    .card-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -591,16 +619,11 @@
       font-size: 0.8rem;
       color: var(--text-light);
     }
-    .card-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
     .btn-apply {
-      background: var(--unstop-primary);
+      background: var(--brand-primary);
       color: #ffffff;
       border: none;
-      padding: 0.45rem 1.15rem;
+      padding: 0.45rem 1.25rem;
       border-radius: 9999px;
       font-size: 0.82rem;
       font-weight: 600;
@@ -608,21 +631,22 @@
       transition: background 0.15s;
     }
     .btn-apply:hover { background: #005bb5; }
-    .icon-action {
+    .btn-heart {
       background: none;
       border: none;
+      font-size: 1.15rem;
       cursor: pointer;
-      font-size: 1rem;
-      color: var(--text-muted);
       padding: 0.25rem;
+      color: var(--text-light);
+      transition: transform 0.15s;
     }
-    .icon-action:hover { color: var(--unstop-primary); }
+    .btn-heart:hover { transform: scale(1.15); }
+    .btn-heart.saved { color: #ef4444; }
 
-    /* Expandable Description */
-    .card-desc-full {
+    .desc-accordion {
       display: none;
       background: #f8fafc;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: 1rem;
       margin-top: 0.75rem;
@@ -632,74 +656,113 @@
       line-height: 1.6;
     }
 
-    /* Right Sidebar (Unstop Featured Section) */
-    .right-sidebar {
+    /* Right Sidebar (Real Unstop style) */
+    .sidebar-right {
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
     }
-    .featured-card {
+    .unstop-box {
       background: #ffffff;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       padding: 1.25rem;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
     }
-    .featured-card h4 {
+    .unstop-box h4 {
       font-size: 0.95rem;
       font-weight: 700;
       color: var(--text-heading);
       margin-bottom: 0.85rem;
     }
-    .featured-item {
+    .employer-row {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      padding: 0.65rem 0;
+      padding: 0.6rem 0;
       border-bottom: 1px solid #f1f5f9;
       cursor: pointer;
     }
-    .featured-item:last-child { border-bottom: none; }
-    .featured-logo {
+    .employer-row:last-child { border-bottom: none; }
+    .employer-avatar {
       width: 36px;
       height: 36px;
       border-radius: 8px;
       background: #eff6ff;
-      color: var(--unstop-primary);
+      color: var(--brand-primary);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
       font-size: 0.85rem;
     }
-    .featured-info h5 {
+    .employer-info h5 {
       font-size: 0.85rem;
       font-weight: 600;
       color: var(--text-heading);
     }
-    .featured-info span {
+    .employer-info span {
       font-size: 0.75rem;
       color: var(--text-muted);
     }
 
-    /* Technical Interview Drawer */
-    .tech-pill-box {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: var(--radius-md);
-      padding: 0.85rem;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      line-height: 1.5;
+    .prep-item {
+      font-size: 0.82rem;
+      color: var(--text-body);
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
     }
-    .tech-pill-box strong {
-      color: var(--text-heading);
-      display: block;
-      margin-bottom: 0.25rem;
+    .prep-item:last-child { border-bottom: none; }
+    .prep-item:hover { color: var(--brand-primary); }
+
+    /* Modal for Architecture (Optional for Interviewer) */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-card {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      max-width: 560px;
+      width: 100%;
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    .modal-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--brand-blue);
+    }
+    .modal-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+    .modal-code {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      font-size: 0.8rem;
+      font-family: monospace;
+      margin-bottom: 1rem;
+      color: var(--text-body);
     }
 
     /* Spinner */
-    .loader {
+    .spin {
       display: inline-block;
       width: 14px;
       height: 14px;
@@ -715,305 +778,542 @@
 
   <!-- Left Sidebar (Unstop Style) -->
   <aside class="sidebar">
-    <div class="sidebar-header">
-      <a href="/" class="unstop-logo">
-        <span>job</span><span class="accent">match</span>
+    <div class="sidebar-brand">
+      <a href="javascript:void(0)" class="logo-text" onclick="showAllJobsView()">
+        <span>job</span>match
       </a>
-      <span style="font-size: 0.7rem; background: #e0f2fe; color: #0284c7; padding: 2px 6px; border-radius: 4px; font-weight: 600;">YC W25</span>
     </div>
 
-    <div class="post-btn-wrapper">
-      <button type="button" class="btn-post-job" onclick="openResumeBox()">
-        <span>+ Match with Resume</span>
+    <div class="post-action">
+      <button type="button" class="btn-resume-cta" onclick="openResumeDrawer()">
+        <span>+ Match with Resume / PDF</span>
       </button>
     </div>
 
-    <nav class="nav-menu">
-      <a href="/" class="nav-item">
-        <span class="nav-item-icon">🏠</span>
-        <span>Home</span>
-      </a>
-      <a href="/" class="nav-item active">
-        <span class="nav-item-icon">💼</span>
-        <span>Jobs</span>
-      </a>
-      <a href="javascript:void(0)" class="nav-item" onclick="openResumeBox()">
-        <span class="nav-item-icon">📄</span>
-        <span>AI Resume Match</span>
-      </a>
-      <a href="javascript:void(0)" class="nav-item" onclick="filterByRole('AI & Machine Learning')">
-        <span class="nav-item-icon">🤖</span>
-        <span>AI / ML Roles</span>
-      </a>
-      <a href="javascript:void(0)" class="nav-item" onclick="filterByRole('Backend')">
-        <span class="nav-item-icon">⚙️</span>
-        <span>Backend Roles</span>
-      </a>
-      <a href="/docs" target="_blank" class="nav-item">
-        <span class="nav-item-icon">📖</span>
-        <span>API Docs</span>
-      </a>
+    <nav class="nav-list">
+      <button type="button" class="nav-btn active" id="nav-home" onclick="navTo('home')">
+        <div class="nav-btn-left">
+          <span>🏠</span>
+          <span>Home</span>
+        </div>
+      </button>
+
+      <button type="button" class="nav-btn" id="nav-jobs" onclick="navTo('jobs')">
+        <div class="nav-btn-left">
+          <span>💼</span>
+          <span>Jobs & Roles</span>
+        </div>
+      </button>
+
+      <button type="button" class="nav-btn" id="nav-wishlist" onclick="navTo('wishlist')">
+        <div class="nav-btn-left">
+          <span>❤️</span>
+          <span>Saved Jobs</span>
+        </div>
+        <span class="nav-counter" id="sidebar-wishlist-count" style="display: none;">0</span>
+      </button>
+
+      <button type="button" class="nav-btn" id="nav-resume" onclick="navTo('resume')">
+        <div class="nav-btn-left">
+          <span>📄</span>
+          <span>Resume & PDF Match</span>
+        </div>
+      </button>
+
+      <button type="button" class="nav-btn" id="nav-backend" onclick="navTo('backend')">
+        <div class="nav-btn-left">
+          <span>⚙️</span>
+          <span>Backend Roles</span>
+        </div>
+      </button>
+
+      <button type="button" class="nav-btn" id="nav-aiml" onclick="navTo('aiml')">
+        <div class="nav-btn-left">
+          <span>🤖</span>
+          <span>AI / ML Roles</span>
+        </div>
+      </button>
+
+      <button type="button" class="nav-btn" id="nav-data" onclick="navTo('data')">
+        <div class="nav-btn-left">
+          <span>📊</span>
+          <span>Data Platform</span>
+        </div>
+      </button>
     </nav>
 
     <div class="sidebar-footer">
-      <div class="banner-mini">
-        <strong>Matching Architecture</strong>
-        pgvector HNSW + FTS + RRF (k=60) + Cross-Encoder
-      </div>
+      <a href="javascript:void(0)" class="arch-link" onclick="openArchModal()">
+        <span>⚙️</span>
+        <span>Tech Architecture & Docs</span>
+      </a>
     </div>
   </aside>
 
-  <!-- Main Content Wrapper -->
-  <div class="main-wrapper">
+  <!-- Main View Area -->
+  <div class="main-body">
     
-    <!-- Top Bar -->
-    <header class="top-bar">
-      <div class="top-search-box">
-        <span class="top-search-icon">🔍</span>
+    <!-- Top Navigation Bar -->
+    <header class="header-bar">
+      <div class="search-wrapper">
+        <span class="header-search-icon">🔍</span>
         <input 
           type="text" 
-          id="global-search" 
-          class="top-search-input" 
-          placeholder="Search jobs by role, skill, company (e.g. Python, FastAPI, Elip AI)..."
+          id="query-input" 
+          class="header-search" 
+          placeholder="Search jobs by role, technical skills, or keywords (e.g. Python, FastAPI, Docker)..."
           autocomplete="off"
         />
       </div>
 
       <div class="top-actions">
-        <button type="button" class="btn-business" onclick="filterRemoteOnly()">
-          <span>🌐 Remote Only</span>
+        <button type="button" class="btn-wishlist-top" onclick="navTo('wishlist')">
+          <span>❤️ Saved</span>
+          <span id="top-wishlist-count" style="font-weight: 700; color: #ef4444;">(0)</span>
         </button>
-        <button type="button" id="btn-top-search" class="btn-login" onclick="triggerSearch()">
+        <button type="button" id="btn-search-main" class="btn-search-primary" onclick="executeSearch()">
           <span>Search</span>
         </button>
       </div>
     </header>
 
-    <!-- Page Content -->
-    <main class="content-area">
+    <!-- Content Workspace -->
+    <main class="content-box">
       
-      <!-- Breadcrumbs -->
+      <!-- Breadcrumb Navigation -->
       <div class="breadcrumbs">
-        <a href="/">Home</a>
+        <a href="javascript:void(0)" onclick="navTo('home')" style="color:var(--text-muted); text-decoration:none;">Home</a>
         <span>/</span>
-        <span style="color: var(--text-heading); font-weight: 500;">Jobs & Internships</span>
+        <span class="current" id="breadcrumb-current">Jobs & Roles</span>
       </div>
 
-      <!-- Page Header -->
-      <h1 class="page-title" id="page-heading">850+ Tech Jobs & Opportunities</h1>
-      <p class="page-subtitle">Search & apply for verified engineering, AI/ML, data, and product roles with instant AI fit evaluation.</p>
+      <!-- Page Heading -->
+      <h1 class="page-title" id="page-title-text">850+ Open Tech Jobs & Opportunities</h1>
+      <p class="page-subtitle" id="page-subtitle-text">Verified roles across backend, machine learning, data engineering, and product development.</p>
 
-      <!-- Category Filter Pills (Unstop Style) -->
-      <div class="category-pills-row">
-        <button type="button" class="cat-pill active" onclick="filterCategory('All')">🌐 All Roles</button>
-        <button type="button" class="cat-pill" onclick="filterCategory('Python Backend')">⚙️ Backend Developer</button>
-        <button type="button" class="cat-pill" onclick="filterCategory('Machine Learning')">🤖 AI & ML Engineer</button>
-        <button type="button" class="cat-pill" onclick="filterCategory('Data Platform')">📊 Data Science & Data Eng</button>
-        <button type="button" class="cat-pill" onclick="filterCategory('Full Stack')">💻 Full Stack Engineer</button>
-        <button type="button" class="cat-pill" onclick="filterCategory('Elip AI')">🚀 Elip AI (YC W25)</button>
+      <!-- Category Filter Pills -->
+      <div class="cat-pills-row" id="category-pills">
+        <button type="button" class="cat-pill active" onclick="selectCategory('All', this)">🌐 All Roles</button>
+        <button type="button" class="cat-pill" onclick="selectCategory('Python Backend', this)">⚙️ Backend Engineer</button>
+        <button type="button" class="cat-pill" onclick="selectCategory('Machine Learning', this)">🤖 AI / ML Engineer</button>
+        <button type="button" class="cat-pill" onclick="selectCategory('Data Platform', this)">📊 Data Engineering</button>
+        <button type="button" class="cat-pill" onclick="selectCategory('Full Stack', this)">💻 Full Stack</button>
+        <button type="button" class="cat-pill" onclick="selectCategory('DevOps', this)">☁️ DevOps & Cloud</button>
       </div>
 
-      <!-- Resume Matching Prompt Banner (Unstop Style) -->
-      <div class="promo-banner">
-        <div class="promo-content">
-          <span class="sparkle-icon">✨</span>
-          <span>Want personalized roles matched to your exact experience? 
-            <span class="promo-link" onclick="openResumeBox()">Click here to paste your resume / profile</span>.
+      <!-- Unstop Resume / PDF Promo Card -->
+      <div class="resume-prompt-card" id="resume-promo-box">
+        <div class="resume-prompt-left">
+          <span style="font-size: 1.25rem;">✨</span>
+          <span>Have a resume ready? 
+            <strong style="color: var(--brand-purple); cursor: pointer;" onclick="openResumeDrawer()">Upload your PDF or paste your profile</strong> to see instant match scores and skill gaps.
           </span>
         </div>
-        <button type="button" class="filter-chip-btn active-filter" onclick="openResumeBox()">
-          <span>Upload / Paste Resume</span>
+        <button type="button" class="cat-pill" style="border-color: #c7d2fe; color: var(--brand-purple); font-weight: 600;" onclick="openResumeDrawer()">
+          <span>📄 Match by Resume / PDF</span>
         </button>
       </div>
 
-      <!-- Expandable Resume Box -->
-      <div class="resume-box" id="resume-container">
-        <h3><span>📄</span> Paste Candidate Resume or Profile Summary</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted);">
-          Our AI embedding model and Cross-Encoder will extract your core skills, match you against all 850+ jobs, and calculate an exact fit score with missing skill gaps.
-        </p>
-        <textarea id="resume-input" class="resume-textarea" placeholder="Paste your resume text here (e.g. Experienced Software Engineer with 3+ years in Python, FastAPI, Docker, and PostgreSQL. Built scalable microservices, integrated redis caching, and implemented async workers...)"></textarea>
-        <div class="resume-actions">
-          <button type="button" class="filter-chip-btn" onclick="closeResumeBox()">Cancel</button>
-          <button type="button" id="btn-eval-resume" class="btn-login" onclick="triggerResumeMatch()">
-            <span>Evaluate Match Fit</span>
+      <!-- Resume & PDF Upload Drawer -->
+      <div class="resume-drawer" id="resume-drawer">
+        <div class="resume-drawer-header">
+          <h3><span>📄</span> Match Jobs with Your Resume</h3>
+          <span style="cursor: pointer; color: var(--text-light); font-size: 1.2rem;" onclick="closeResumeDrawer()">✕</span>
+        </div>
+
+        <!-- PDF Drag & Drop Upload Zone -->
+        <div class="pdf-dropzone" id="pdf-dropzone" onclick="document.getElementById('pdf-file-input').click()">
+          <div class="dropzone-icon">📥</div>
+          <div class="dropzone-title" id="dropzone-label">Click to upload your Resume PDF (or drag & drop here)</div>
+          <div class="dropzone-sub">Supports .pdf files. Text will be extracted automatically.</div>
+          <input type="file" id="pdf-file-input" accept=".pdf" onchange="handlePdfUpload(event)" />
+        </div>
+
+        <div class="resume-or-divider">
+          <span>or edit text directly</span>
+        </div>
+
+        <textarea 
+          id="resume-text-input" 
+          class="resume-textarea" 
+          placeholder="Paste or review candidate profile / skills text here..."></textarea>
+
+        <div class="drawer-actions">
+          <button type="button" class="cat-pill" onclick="closeResumeDrawer()">Cancel</button>
+          <button type="button" id="btn-run-resume-match" class="btn-search-primary" onclick="executeResumeMatch()">
+            <span>Find Matching Roles</span>
           </button>
         </div>
       </div>
 
-      <!-- Search Filters Row -->
-      <div class="filter-bar">
-        <div class="filter-chip-btn active-filter">
-          <span>Filters</span>
-          <span class="filter-count-badge" id="filter-count">0</span>
-        </div>
-        
-        <select id="mode-selector" class="filter-chip-btn" onchange="triggerSearch()" style="outline: none;">
-          <option value="rerank" selected>Algorithm: Hybrid + Cross-Encoder Rerank</option>
-          <option value="hybrid">Algorithm: Hybrid Fusion (RRF k=60)</option>
-          <option value="vector">Algorithm: Vector (Cosine Similarity)</option>
-          <option value="keyword">Algorithm: Keyword (Postgres FTS)</option>
+      <!-- Filters Row -->
+      <div class="filter-row">
+        <!-- Work Mode Dropdown (Remote, Hybrid, In-Office) -->
+        <select id="filter-work-mode" class="filter-select" onchange="executeSearch()">
+          <option value="" selected>Workplace: All Work Modes</option>
+          <option value="remote">🌐 Remote Only</option>
+          <option value="in_office">🏢 In-Office / On-Site</option>
         </select>
 
-        <select id="location-selector" class="filter-chip-btn" onchange="triggerSearch()" style="outline: none;">
+        <!-- Location Dropdown -->
+        <select id="filter-location" class="filter-select" onchange="executeSearch()">
           <option value="" selected>Location: All Locations</option>
           <option value="Bengaluru">Bengaluru, India</option>
           <option value="Gurugram">Gurugram, India</option>
-          <option value="Remote">Remote Roles</option>
+          <option value="Hyderabad">Hyderabad, India</option>
           <option value="San Francisco">San Francisco, CA</option>
+          <option value="New York">New York, NY</option>
         </select>
 
-        <select id="topk-selector" class="filter-chip-btn" onchange="triggerSearch()" style="outline: none;">
+        <!-- Result Count -->
+        <select id="filter-topk" class="filter-select" onchange="executeSearch()">
           <option value="10" selected>Show: Top 10</option>
           <option value="20">Show: Top 20</option>
         </select>
+
+        <!-- Algorithm (kept discreet) -->
+        <select id="filter-algorithm" class="filter-select" onchange="executeSearch()">
+          <option value="rerank" selected>Algorithm: Hybrid + Rerank</option>
+          <option value="hybrid">Algorithm: Hybrid (RRF)</option>
+          <option value="vector">Algorithm: Vector Cosine</option>
+          <option value="keyword">Algorithm: Keyword (FTS)</option>
+        </select>
       </div>
 
-      <!-- Main Layout: Job Cards + Sidebar -->
-      <div class="grid-layout">
+      <!-- Feed Grid Layout -->
+      <div class="content-grid">
         
-        <!-- Job Cards Feed -->
-        <div class="job-feed-col">
-          <div id="results-meta-banner" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-muted);">
-            <div>Showing <strong id="jobs-count-text" style="color: var(--text-heading);">10</strong> verified opportunities</div>
-            <div id="latency-tag" style="font-size: 0.78rem; background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-weight: 600;">Mode: RERANK</div>
+        <!-- Job Cards Column -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; font-size: 0.85rem; color: var(--text-muted);">
+            <div>Showing <strong id="results-count-text" style="color: var(--text-heading);">10</strong> jobs</div>
+            <div id="results-latency-badge" style="font-size: 0.75rem; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+              Active Mode: RERANK
+            </div>
           </div>
 
-          <div class="job-list" id="job-cards-container">
-            <!-- Dynamically populated -->
+          <div class="jobs-feed" id="jobs-cards-container">
+            <!-- Job cards populated here -->
           </div>
         </div>
 
-        <!-- Right Sidebar (Featured & Telemetry) -->
-        <aside class="right-sidebar">
-          <div class="featured-card">
-            <h4>Featured Employers</h4>
-            <div class="featured-item" onclick="quickFill('Elip AI')">
-              <div class="featured-logo">E</div>
-              <div class="featured-info">
+        <!-- Right Column: Top Employers & Career Tips (Unstop Style) -->
+        <aside class="sidebar-right">
+          
+          <div class="unstop-box">
+            <h4>🏢 Top Hiring Companies</h4>
+            <div class="employer-row" onclick="filterByEmployer('Elip AI')">
+              <div class="employer-avatar">E</div>
+              <div class="employer-info">
                 <h5>Elip AI</h5>
-                <span>AI Career Agent (YC W25)</span>
+                <span>AI Career Agent & Search</span>
               </div>
             </div>
-            <div class="featured-item" onclick="quickFill('VectorFlow')">
-              <div class="featured-logo">V</div>
-              <div class="featured-info">
+            <div class="employer-row" onclick="filterByEmployer('VectorFlow')">
+              <div class="employer-avatar">V</div>
+              <div class="employer-info">
                 <h5>VectorFlow</h5>
-                <span>Vector Search Infrastructure</span>
+                <span>Vector Infra & Neural Search</span>
               </div>
             </div>
-            <div class="featured-item" onclick="quickFill('NeuralGraph')">
-              <div class="featured-logo">N</div>
-              <div class="featured-info">
+            <div class="employer-row" onclick="filterByEmployer('NeuralGraph')">
+              <div class="employer-avatar">N</div>
+              <div class="employer-info">
                 <h5>NeuralGraph</h5>
                 <span>RAG & Knowledge Graphs</span>
               </div>
             </div>
-            <div class="featured-item" onclick="quickFill('DataPulse')">
-              <div class="featured-logo">D</div>
-              <div class="featured-info">
+            <div class="employer-row" onclick="filterByEmployer('DataPulse')">
+              <div class="employer-avatar">D</div>
+              <div class="employer-info">
                 <h5>DataPulse</h5>
-                <span>Streaming & Analytics</span>
+                <span>Real-Time Event Streaming</span>
               </div>
             </div>
           </div>
 
-          <div class="featured-card">
-            <h4>System Architecture</h4>
-            <div class="tech-pill-box">
-              <strong>Two-Stage Rerank Pipeline:</strong>
-              1. <em>Bi-Encoder:</em> all-MiniLM-L6-v2 (384d Cosine)<br>
-              2. <em>Full Text:</em> tsvector GIN index<br>
-              3. <em>Fusion:</em> Reciprocal Rank Fusion (k=60)<br>
-              4. <em>Cross-Encoder:</em> ms-marco-MiniLM-L-6-v2<br>
-              5. <em>Explanation:</em> Pydantic validated structured JSON
+          <div class="unstop-box">
+            <h4>💡 Interview & Prep Insights</h4>
+            <div class="prep-item" onclick="quickFill('Python FastAPI Docker')">
+              <span>🎯</span>
+              <span>FastAPI & Microservices Architecture</span>
+            </div>
+            <div class="prep-item" onclick="quickFill('PyTorch RAG LLM')">
+              <span>🤖</span>
+              <span>RAG Pipelines & Vector Databases</span>
+            </div>
+            <div class="prep-item" onclick="quickFill('Snowflake dbt SQL')">
+              <span>📊</span>
+              <span>Modern Data Modeling & dbt Workflows</span>
+            </div>
+            <div class="prep-item" onclick="quickFill('PostgreSQL pgvector')">
+              <span>⚡</span>
+              <span>PostgreSQL Indexing & Optimization</span>
             </div>
           </div>
+
         </aside>
 
       </div>
+
     </main>
 
   </div>
 
+  <!-- Tech Architecture Modal (For Interviews) -->
+  <div class="modal-overlay" id="arch-modal" onclick="if(event.target===this) closeArchModal()">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <h3>Technical System Architecture</h3>
+        <span style="cursor: pointer; font-size: 1.2rem; color: var(--text-light);" onclick="closeArchModal()">✕</span>
+      </div>
+      <p>JobMatch implements a production two-stage retrieve-then-rerank pipeline:</p>
+      
+      <div class="modal-code">
+1. Candidate Pool Generation:
+   - Vector: all-MiniLM-L6-v2 (384d) with pgvector HNSW index
+   - Keyword: PostgreSQL GIN tsvector (weighted A/B/C/D)
+2. Hybrid Rank Fusion:
+   - Reciprocal Rank Fusion: RRF = SUM [ 1 / (60 + rank) ]
+3. Cross-Encoder Reranking:
+   - ms-marco-MiniLM-L-6-v2 (Sigmoid score calibration)
+4. LLM Fit Analysis:
+   - Strict Pydantic JSON schema with retry validation
+      </div>
+
+      <div style="display: flex; justify-content: flex-end;">
+        <button type="button" class="btn-search-primary" onclick="closeArchModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    let isResumeMode = false;
+    // Wishlist stored in localStorage
+    let savedJobIds = new Set(JSON.parse(localStorage.getItem('jobmatch_wishlist') || '[]'));
+    let currentActiveView = 'home';
+    let loadedJobsCache = [];
 
-    // Load initial jobs on page load
     window.addEventListener('DOMContentLoaded', () => {
-      runSearch('Staff Python Backend Engineer with FastAPI');
+      updateWishlistBadges();
+      executeSearch('Python Backend Engineer');
     });
 
-    // Enter key triggers search
-    document.getElementById('global-search').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') triggerSearch();
+    document.getElementById('query-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') executeSearch();
     });
 
-    function openResumeBox() {
-      isResumeMode = true;
-      document.getElementById('resume-container').style.display = 'block';
-      document.getElementById('resume-input').focus();
-      document.getElementById('resume-container').scrollIntoView({ behavior: 'smooth' });
-    }
+    // Setup drag and drop for PDF
+    const dropzone = document.getElementById('pdf-dropzone');
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        processPdfFile(e.dataTransfer.files[0]);
+      }
+    });
 
-    function closeResumeBox() {
-      isResumeMode = false;
-      document.getElementById('resume-container').style.display = 'none';
-    }
-
-    function quickFill(val) {
-      document.getElementById('global-search').value = val;
-      triggerSearch();
-    }
-
-    function filterCategory(cat) {
-      document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
-
-      if (cat === 'All') {
-        document.getElementById('global-search').value = '';
-        triggerSearch('Software Engineer');
-      } else {
-        document.getElementById('global-search').value = cat;
-        triggerSearch(cat);
+    function handlePdfUpload(event) {
+      if (event.target.files && event.target.files.length > 0) {
+        processPdfFile(event.target.files[0]);
       }
     }
 
-    function filterByRole(role) {
-      document.getElementById('global-search').value = role;
-      triggerSearch(role);
+    async function processPdfFile(file) {
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        alert('Please select a valid PDF file.');
+        return;
+      }
+
+      const label = document.getElementById('dropzone-label');
+      label.innerHTML = `Extracting text from <strong>${file.name}</strong>...`;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/upload-resume', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || 'Could not parse PDF');
+        }
+
+        const data = await res.json();
+        document.getElementById('resume-text-input').value = data.text;
+        label.innerHTML = `✓ Successfully extracted ${data.character_count} characters from <strong>${file.name}</strong>`;
+      } catch (err) {
+        label.innerHTML = `❌ Error: ${err.message}`;
+      }
     }
 
-    function filterRemoteOnly() {
-      document.getElementById('location-selector').value = 'Remote';
-      triggerSearch();
+    function openResumeDrawer() {
+      document.getElementById('resume-drawer').style.display = 'block';
+      document.getElementById('resume-drawer').scrollIntoView({ behavior: 'smooth' });
     }
 
-    function triggerSearch(customQuery = null) {
-      isResumeMode = false;
-      const query = customQuery || document.getElementById('global-search').value.trim() || 'Software Engineer';
-      runSearch(query);
+    function closeResumeDrawer() {
+      document.getElementById('resume-drawer').style.display = 'none';
     }
 
-    function triggerResumeMatch() {
-      const resume = document.getElementById('resume-input').value.trim();
+    function openArchModal() {
+      document.getElementById('arch-modal').style.display = 'flex';
+    }
+
+    function closeArchModal() {
+      document.getElementById('arch-modal').style.display = 'none';
+    }
+
+    function updateWishlistBadges() {
+      const count = savedJobIds.size;
+      document.getElementById('top-wishlist-count').innerText = `(${count})`;
+      const sidebarBadge = document.getElementById('sidebar-wishlist-count');
+      if (count > 0) {
+        sidebarBadge.style.display = 'inline-block';
+        sidebarBadge.innerText = count;
+      } else {
+        sidebarBadge.style.display = 'none';
+      }
+    }
+
+    function toggleSaveJob(jobId, btn) {
+      if (savedJobIds.has(jobId)) {
+        savedJobIds.delete(jobId);
+        btn.classList.remove('saved');
+        btn.innerText = '🤍';
+      } else {
+        savedJobIds.add(jobId);
+        btn.classList.add('saved');
+        btn.innerText = '❤️';
+      }
+      localStorage.setItem('jobmatch_wishlist', JSON.stringify([...savedJobIds]));
+      updateWishlistBadges();
+
+      if (currentActiveView === 'wishlist') {
+        renderWishlistView();
+      }
+    }
+
+    function setActiveNav(btnId) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      const target = document.getElementById(btnId);
+      if (target) target.classList.add('active');
+    }
+
+    function navTo(view) {
+      currentActiveView = view;
+      setActiveNav(`nav-${view}`);
+
+      if (view === 'home' || view === 'jobs') {
+        showAllJobsView();
+      } else if (view === 'wishlist') {
+        renderWishlistView();
+      } else if (view === 'resume') {
+        openResumeDrawer();
+      } else if (view === 'backend') {
+        document.getElementById('query-input').value = 'Backend Engineer Python FastAPI';
+        executeSearch();
+      } else if (view === 'aiml') {
+        document.getElementById('query-input').value = 'Machine Learning Engineer LLM PyTorch';
+        executeSearch();
+      } else if (view === 'data') {
+        document.getElementById('query-input').value = 'Data Platform Engineer Snowflake dbt';
+        executeSearch();
+      }
+    }
+
+    function showAllJobsView() {
+      document.getElementById('breadcrumb-current').innerText = 'Jobs & Roles';
+      document.getElementById('page-title-text').innerText = '850+ Open Tech Jobs & Opportunities';
+      document.getElementById('page-subtitle-text').innerText = 'Verified roles across backend, machine learning, data engineering, and product development.';
+      executeSearch();
+    }
+
+    function renderWishlistView() {
+      document.getElementById('breadcrumb-current').innerText = 'Saved Jobs (Wishlist)';
+      document.getElementById('page-title-text').innerText = `Your Saved Jobs (${savedJobIds.size})`;
+      document.getElementById('page-subtitle-text').innerText = 'Roles you have bookmarked for applications and interview preparation.';
+
+      const container = document.getElementById('jobs-cards-container');
+      const countText = document.getElementById('results-count-text');
+      
+      const filtered = loadedJobsCache.filter(j => savedJobIds.has(j.id));
+      countText.innerText = filtered.length;
+      container.innerHTML = '';
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:3rem; text-align:center;">
+            <div style="font-size:2rem; margin-bottom:0.5rem;">🤍</div>
+            <h4 style="font-size:1.1rem; color:#1e293b; margin-bottom:0.3rem;">No Saved Jobs Yet</h4>
+            <p style="font-size:0.85rem; color:#64748b; margin-bottom:1rem;">Click the heart icon on any job card to save it here for later.</p>
+            <button type="button" class="btn-search-primary" onclick="navTo('jobs')" style="margin:0 auto;">Explore Jobs</button>
+          </div>
+        `;
+        return;
+      }
+
+      renderCards(filtered);
+    }
+
+    function selectCategory(cat, btn) {
+      document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (cat === 'All') {
+        document.getElementById('query-input').value = '';
+        executeSearch('Software Engineer');
+      } else {
+        document.getElementById('query-input').value = cat;
+        executeSearch(cat);
+      }
+    }
+
+    function filterByEmployer(company) {
+      document.getElementById('query-input').value = company;
+      executeSearch(company);
+    }
+
+    function quickFill(val) {
+      document.getElementById('query-input').value = val;
+      executeSearch(val);
+    }
+
+    function executeResumeMatch() {
+      const resume = document.getElementById('resume-text-input').value.trim();
       if (!resume) {
-        alert('Please paste your resume or career summary first.');
+        alert('Please upload a PDF resume or paste candidate background text.');
         return;
       }
       runSearch(null, resume);
     }
 
+    function executeSearch(overrideQuery = null) {
+      const query = overrideQuery || document.getElementById('query-input').value.trim() || 'Software Engineer';
+      runSearch(query, null);
+    }
+
     async function runSearch(query = null, resume = null) {
-      const mode = document.getElementById('mode-selector').value;
-      const location = document.getElementById('location-selector').value || null;
-      const topK = parseInt(document.getElementById('topk-selector').value, 10);
+      const mode = document.getElementById('filter-algorithm').value;
+      const locationVal = document.getElementById('filter-location').value;
+      const workMode = document.getElementById('filter-work-mode').value;
+      const topK = parseInt(document.getElementById('filter-topk').value, 10);
 
-      const btnTop = document.getElementById('btn-top-search');
-      const btnResume = document.getElementById('btn-eval-resume');
+      let remoteFilter = null;
+      if (workMode === 'remote') remoteFilter = true;
+      if (workMode === 'in_office') remoteFilter = false;
 
-      if (btnTop) btnTop.innerHTML = `<span class="loader"></span>`;
-      if (btnResume) btnResume.innerHTML = `<span class="loader"></span> Matching...`;
+      const btnSearch = document.getElementById('btn-search-main');
+      const btnResume = document.getElementById('btn-run-resume-match');
+
+      if (btnSearch) btnSearch.innerHTML = `<span class="spin"></span>`;
+      if (btnResume) btnResume.innerHTML = `<span class="spin"></span> Matching...`;
 
       try {
         const payload = {
@@ -1021,7 +1321,8 @@
           resume_text: resume,
           mode: mode,
           top_k: topK,
-          location: location,
+          location: locationVal || null,
+          remote: remoteFilter,
           explain: true
         };
 
@@ -1037,81 +1338,82 @@
         }
 
         const data = await res.json();
-        renderJobResults(data);
+        loadedJobsCache = data.results;
 
-        // Smooth scroll to results
-        document.getElementById('results-meta-banner').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('results-count-text').innerText = data.total;
+        document.getElementById('results-latency-badge').innerText = `${data.mode.toUpperCase()} • ${data.latency_ms}ms`;
+
+        if (resume) {
+          document.getElementById('page-title-text').innerText = `Top Matches for Your Resume`;
+          document.getElementById('page-subtitle-text').innerText = `Ranked with cross-attention matching and skill-gap analysis.`;
+        } else {
+          document.getElementById('page-title-text').innerText = `${data.total} Jobs Matching "${data.query}"`;
+        }
+
+        renderCards(data.results);
       } catch (err) {
         alert('Search error: ' + err.message);
       } finally {
-        if (btnTop) btnTop.innerHTML = `<span>Search</span>`;
-        if (btnResume) btnResume.innerHTML = `<span>Evaluate Match Fit</span>`;
+        if (btnSearch) btnSearch.innerHTML = `<span>Search</span>`;
+        if (btnResume) btnResume.innerHTML = `<span>Find Matching Roles</span>`;
       }
     }
 
-    function renderJobResults(data) {
-      const container = document.getElementById('job-cards-container');
-      const countEl = document.getElementById('jobs-count-text');
-      const latencyTag = document.getElementById('latency-tag');
-      const heading = document.getElementById('page-heading');
-
-      countEl.innerText = data.total;
-      latencyTag.innerText = `${data.mode.toUpperCase()} • ${data.latency_ms}ms`;
-      heading.innerText = `${data.total} Jobs Matching "${data.query.substring(0, 35)}${data.query.length > 35 ? '...' : ''}"`;
-
+    function renderCards(jobs) {
+      const container = document.getElementById('jobs-cards-container');
       container.innerHTML = '';
 
-      if (data.results.length === 0) {
+      if (jobs.length === 0) {
         container.innerHTML = `
-          <div style="background:#fff; padding:3rem; text-align:center; border-radius:12px; border:1px solid #e2e8f0;">
-            <h4 style="font-size:1.1rem; color:#475569; margin-bottom:0.5rem;">No exact roles found</h4>
-            <p style="font-size:0.88rem; color:#94a3b8;">Try clearing location filters or searching for foundational keywords like Python, SQL, or Backend.</p>
+          <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:3rem; text-align:center;">
+            <h4 style="font-size:1.1rem; color:#1e293b; margin-bottom:0.3rem;">No Jobs Found</h4>
+            <p style="font-size:0.85rem; color:#64748b;">Try clearing location or work mode filters.</p>
           </div>
         `;
         return;
       }
 
-      data.results.forEach((job) => {
+      jobs.forEach((job) => {
         const card = document.createElement('div');
-        card.className = 'unstop-card';
+        card.className = 'job-card';
 
         const logoLetter = (job.company || 'C').charAt(0).toUpperCase();
         const skillsArray = job.skills.split(',').map(s => s.trim()).filter(Boolean);
-        const skillBadges = skillsArray.map(s => `<span class="badge-skill">${s}</span>`).join('');
+        const skillBadges = skillsArray.map(s => `<span class="skill-badge">${s}</span>`).join('');
 
-        // Match Score Display
+        const isSaved = savedJobIds.has(job.id);
+        const heartChar = isSaved ? '❤️' : '🤍';
+        const heartClass = isSaved ? 'saved' : '';
+
+        // Match Quality Chip
         let scorePercent = Math.round(job.score * 100);
-        let scoreLabel = `${scorePercent}% Match`;
-        if (job.retrieval_mode === 'hybrid') {
-          scoreLabel = `${(job.score * 1000).toFixed(1)} RRF Score`;
-        } else if (job.retrieval_mode === 'vector') {
-          scoreLabel = `${Math.round(job.score * 100)}% Similarity`;
-        }
+        let matchChip = `${scorePercent}% Fit`;
+        if (job.retrieval_mode === 'hybrid') matchChip = `${(job.score * 1000).toFixed(1)} RRF`;
 
         // Explanation block
         let explanationHtml = '';
         if (job.match_explanation) {
           const exp = job.match_explanation;
-          const matchedChips = (exp.matched_skills || []).map(s => `<span class="chip-matched">✓ ${s}</span>`).join('');
-          const missingChips = (exp.missing_skills || []).map(s => `<span class="chip-missing">+ ${s}</span>`).join('');
+          const matchedChips = (exp.matched_skills || []).map(s => `<span class="chip-match">✓ ${s}</span>`).join('');
+          const missingChips = (exp.missing_skills || []).map(s => `<span class="chip-gap">+ ${s}</span>`).join('');
 
           explanationHtml = `
-            <div class="match-breakdown">
-              <div class="match-header">
-                <span style="font-weight:700; color:#1e293b; font-size:0.82rem;">AI Fit Analysis</span>
-                <span class="match-score-pill">${exp.match_score}/100 Match Score</span>
+            <div class="match-box">
+              <div class="match-box-header">
+                <span style="font-weight:700; color:#1e293b; font-size:0.82rem;">Candidate Fit Assessment</span>
+                <span class="score-chip">${exp.match_score}/100 Match</span>
               </div>
-              <div class="match-skills-grid">
+              <div class="match-skills-columns">
                 <div>
-                  <div class="match-group-label">Matched Competencies</div>
-                  <div>${matchedChips || '<span style="font-size:0.75rem; color:#94a3b8;">General alignment</span>'}</div>
+                  <div class="column-title">Matched Competencies</div>
+                  <div>${matchedChips || '<span style="font-size:0.75rem; color:#94a3b8;">General stack fit</span>'}</div>
                 </div>
                 <div>
-                  <div class="match-group-label">Skills to Develop / Highlight</div>
+                  <div class="column-title">Skills to Prepare / Highlight</div>
                   <div>${missingChips || '<span style="font-size:0.75rem; color:#94a3b8;">None</span>'}</div>
                 </div>
               </div>
-              <div class="match-reason-text">
+              <div class="match-reason">
                 <strong>Recruiter Rationale:</strong> ${exp.reason}
               </div>
             </div>
@@ -1123,37 +1425,41 @@
         card.innerHTML = `
           <div class="card-top">
             <div>
-              <div class="role-title" onclick="toggleCardDesc('${descId}', this)">${job.title}</div>
-              <div class="company-name">${job.company}</div>
+              <div class="job-title" onclick="toggleDetails('${descId}')">${job.title}</div>
+              <div class="company-title">${job.company}</div>
             </div>
-            <div class="company-logo">${logoLetter}</div>
+            <div class="company-avatar">${logoLetter}</div>
           </div>
 
-          <div class="card-meta-row">
-            <span class="meta-item">💼 0-3 years</span>
-            <span class="meta-item">🕒 Full Time</span>
-            <span class="meta-item">📍 ${job.location}</span>
-            ${job.remote ? '<span class="meta-item" style="color:#16a34a; font-weight:600;">🌐 Remote Friendly</span>' : ''}
-            ${job.salary ? `<span class="meta-item" style="color:#d97706; font-weight:600;">💰 ${job.salary}</span>` : ''}
+          <div class="meta-badges">
+            <span class="badge-icon">💼 0-3 years</span>
+            <span class="badge-icon">🕒 Full Time</span>
+            <span class="badge-icon">📍 ${job.location}</span>
+            ${job.remote ? '<span class="badge-icon" style="color:#16a34a; font-weight:600;">🌐 Remote Friendly</span>' : ''}
+            ${job.salary ? `<span class="badge-icon" style="color:#d97706; font-weight:600;">💰 ${job.salary}</span>` : ''}
           </div>
 
-          <div class="skills-badges">
+          <div class="skill-chips">
             ${skillBadges}
           </div>
 
           ${explanationHtml}
 
-          <div class="card-bottom">
-            <span>Posted recently • Actively Hiring</span>
-            <div class="card-actions">
-              <button type="button" class="icon-action" title="Save Job" onclick="this.innerText='❤️'">🤍</button>
-              <button type="button" class="btn-apply" onclick="alert('Application submitted for ' + '${job.title.replace(/'/g, "\\'")}')">
+          <div class="card-footer">
+            <button type="button" class="cat-pill" style="padding:0.25rem 0.65rem; font-size:0.78rem;" onclick="toggleDetails('${descId}')">
+              View Description ▾
+            </button>
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <button type="button" class="btn-heart ${heartClass}" title="Save to Wishlist" onclick="toggleSaveJob(${job.id}, this)">
+                ${heartChar}
+              </button>
+              <button type="button" class="btn-apply" onclick="alert('Application started for ${job.title.replace(/'/g, "\\'")} at ${job.company.replace(/'/g, "\\'")}')">
                 Apply Now
               </button>
             </div>
           </div>
 
-          <div class="card-desc-full" id="${descId}">
+          <div class="desc-accordion" id="${descId}">
             <strong>Role Overview & Requirements:</strong><br><br>
             ${job.description}
           </div>
@@ -1163,7 +1469,7 @@
       });
     }
 
-    function toggleCardDesc(id) {
+    function toggleDetails(id) {
       const el = document.getElementById(id);
       el.style.display = (el.style.display === 'block') ? 'none' : 'block';
     }
