@@ -95,6 +95,15 @@
     - *Decision*: Implemented keyword-token skill matching fallback when API keys are unconfigured or provider endpoints time out.
     - *Tradeoff*: Guarantees 100% system uptime and offline testability without blocking backend services during upstream LLM outages.
 
+### Phase 5: API Layer & Bespoke SaaS Frontend
+12. **Unified Search & Resume Interface (`POST /search`)**:
+    - *Decision*: Merged short query and multiline unstructured resume text into a single endpoint with automatic truncation to fit embedding context limits.
+    - *Tradeoff*: Simplifies client integration and avoids maintaining divergent search paths for candidate bios vs. title lookups.
+
+13. **Modern Pure-Vanilla SaaS Frontend**:
+    - *Decision*: Built a bespoke, high-performance UI in vanilla HTML5/CSS3/ES6 served directly by FastAPI without React or build tooling.
+    - *Tradeoff*: Zero bundle compilation overhead and sub-millisecond page load, with a clean Linear/Vercel-inspired dark theme and live telemetry.
+
 ---
 
 ## Quickstart

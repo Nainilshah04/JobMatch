@@ -22,16 +22,6 @@ class JobRecord(JobBase):
     id: int = Field(..., description="Unique job ID")
 
 
-class JobSearchResult(JobRecord):
-    """Job search result enriched with relevance scoring and retrieval mode."""
-
-    score: float = Field(..., description="Relevance score (similarity, ts_rank, or RRF)")
-    retrieval_mode: str = Field(..., description="Retrieval method used: vector, keyword, hybrid, or rerank")
-    match_explanation: Optional["JobExplanation"] = Field(
-        None, description="Optional LLM-generated skill match explanation"
-    )
-
-
 class JobExplanation(BaseModel):
     """Structured LLM explanation of candidate-job fit."""
 
@@ -41,8 +31,14 @@ class JobExplanation(BaseModel):
     reason: str = Field(..., description="Concise explanation justifying the score and fit")
 
 
-# Rebuild model to resolve forward references
-JobSearchResult.model_rebuild()
+class JobSearchResult(JobRecord):
+    """Job search result enriched with relevance scoring and retrieval mode."""
+
+    score: float = Field(..., description="Relevance score (similarity, ts_rank, or RRF)")
+    retrieval_mode: str = Field(..., description="Retrieval method used: vector, keyword, hybrid, or rerank")
+    match_explanation: Optional[JobExplanation] = Field(
+        None, description="Optional LLM-generated skill match explanation"
+    )
 
 
 class SearchRequest(BaseModel):
@@ -54,4 +50,22 @@ class SearchRequest(BaseModel):
     top_k: int = Field(10, ge=1, le=50, description="Number of results to return")
     location: Optional[str] = Field(None, description="Filter by location (case-insensitive substring)")
     remote: Optional[bool] = Field(None, description="Filter for remote roles only")
-    explain: bool = Field(False, description="Whether to generate LLM explanations for top results")
+    explain: bool = Field(True, description="Whether to generate structured fit explanations for top results")
+    reranker_type: str = Field("cross_encoder", description="Reranker strategy: cross_encoder or llm")
+
+
+class SearchResponse(BaseModel):
+    """Encapsulates search results and execution metadata."""
+
+    query: str = Field(..., description="Effective query or resume text used for retrieval")
+    mode: str = Field(..., description="Retrieval mode executed")
+    total: int = Field(..., description="Number of jobs retrieved")
+    latency_ms: float = Field(..., description="Total execution latency in milliseconds")
+    results: List[JobSearchResult] = Field(default_factory=list, description="Ranked job search results")
+
+
+class ExplainRequest(BaseModel):
+    """Request payload for standalone candidate fit explanation."""
+
+    query_or_resume: str = Field(..., description="Candidate query or resume text")
+    job_id: int = Field(..., description="Target job posting ID to explain fit against")
