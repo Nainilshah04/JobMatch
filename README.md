@@ -73,6 +73,19 @@
    - *Decision*: Handled user input using `websearch_to_tsquery` falling back to `plainto_tsquery`.
    - *Tradeoff*: Unlike raw `to_tsquery`, `websearch_to_tsquery` gracefully parses quotes, unclosed brackets, and logical operators without raising SQL runtime exceptions on user typos.
 
+### Phase 3: Two-Stage Retrieve-Then-Rerank
+7. **Two-Stage Architecture (Bi-Encoder + Cross-Encoder)**:
+   - *Decision*: Retrieve the top 20 candidates via hybrid search and rerank them using `cross-encoder/ms-marco-MiniLM-L-6-v2`.
+   - *Tradeoff*: Bi-encoders allow sub-millisecond approximate nearest neighbors ($O(\log N)$ via HNSW) but compute vector representations independently without cross-token attention. A Cross-Encoder computes full token-to-token cross-attention for maximum ranking precision ($O(N)$), which is computationally feasible only on a filtered candidate pool (top 20).
+
+8. **Cross-Encoder Logit Sigmoid Calibration**:
+   - *Decision*: Applied sigmoid $\sigma(s) = \frac{1}{1 + e^{-s}}$ to convert raw cross-encoder logits into calibrated probabilities $[0, 1]$.
+   - *Tradeoff*: Produces intuitive, normalized match confidence scores while preserving exact ranking order.
+
+9. **Cross-Encoder vs. LLM Reranking Toggle**:
+   - *Decision*: Provided a runtime flag (`cross_encoder` vs `llm`).
+   - *Tradeoff*: Cross-encoder executes locally with ~30-50ms latency and zero API cost; LLM reranking provides deep contextual reasoning but incurs higher network latency and per-token API cost.
+
 ---
 
 ## Quickstart
