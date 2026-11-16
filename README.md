@@ -1,12 +1,16 @@
 # JobMatch: Production-Style AI Job-Matching & Hybrid Retrieval Backend
 
+[![Render Live Demo](https://img.shields.io/badge/Render-Live%20Demo-46E3B7?style=flat-square&logo=render&logoColor=white)](https://jobmatch-qcqc.onrender.com)
 [![CI / Test Suite](https://img.shields.io/badge/pytest-16%20passed-success?style=flat-square)](tests/)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.13-blue?style=flat-square)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Production%20Ready-009688?style=flat-square)](https://fastapi.tiangolo.com)
 [![pgvector](https://img.shields.io/badge/pgvector-HNSW%20Cosine-336791?style=flat-square)](https://github.com/pgvector/pgvector)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 
-> **Note on Data**: The dataset in `data/jobs.csv` is **synthetic data** generated via `scripts/generate_jobs.py` (~850 realistic software engineering, AI/ML, data platform, DevOps, and product management roles), modeled after real-world startups and recruitment platforms.
+> 🚀 **Live Production Demo**: [https://jobmatch-qcqc.onrender.com](https://jobmatch-qcqc.onrender.com)  
+> Interactive Unstop-style web portal with semantic/hybrid search, PDF resume drag-and-drop parsing, persistent wishlist, and AI candidate-job fit evaluation.
+>
+> 📊 **Note on Data**: The dataset in `data/jobs.csv` is **synthetic data** generated via `scripts/generate_jobs.py` (~850 realistic software engineering, AI/ML, data platform, DevOps, and product management roles), modeled after real-world tech startups and recruitment platforms.
 
 ---
 
@@ -189,27 +193,26 @@ docker run -p 8000:8000 jobmatch
 
 ---
 
-## Deployment Instructions for Render
+## Live Cloud Deployment & Render Architecture
 
-Deploying JobMatch to Render takes under 3 minutes:
+JobMatch is deployed live in production on Render:
 
-1. **Create Free Database on Neon**:
-   - Visit [neon.tech](https://neon.tech) and create a free serverless PostgreSQL database.
-   - Copy the connection string (`postgresql://user:password@ep-xyz.region.neon.tech/neondb?sslmode=require`).
-2. **Deploy on Render**:
-   - Go to [dashboard.render.com](https://dashboard.render.com) and click **New + > Web Service**.
-   - Connect your GitHub repository: `https://github.com/Nainilshah04/JobMatch`.
-   - Set **Runtime**: `Docker`.
-   - Under **Environment Variables**, add:
-     - `DATABASE_URL`: Your Neon connection string.
-     - `LLM_API_KEY`: Your OpenAI/Gemini API key.
-     - `PORT`: `8000`.
-3. **Initialize Database on First Run**:
-   - From Render's Web Shell or locally pointing to your Neon database:
-     ```bash
-     python scripts/load_jobs.py --embed
-     ```
-   - Your live URL (e.g. `https://jobmatch.onrender.com`) is now live and ready to showcase on your resume!
+> 🌐 **Live URL**: [https://jobmatch-qcqc.onrender.com](https://jobmatch-qcqc.onrender.com)  
+> 📖 **Interactive OpenAPI Specs**: [https://jobmatch-qcqc.onrender.com/docs](https://jobmatch-qcqc.onrender.com/docs)  
+> 🩺 **Healthcheck Endpoint**: [https://jobmatch-qcqc.onrender.com/health](https://jobmatch-qcqc.onrender.com/health)
+
+### 512MB RAM Optimization Strategies for Free-Tier Cloud Containers
+Deploying bi-encoder & cross-encoder transformer architectures within Render's strict **512MB RAM ceiling** required critical engineering optimizations:
+1. **CPU-Only PyTorch Wheel**: Standard PyTorch bundles CUDA binaries exceeding 1.5GB disk and ~350MB base RAM. We install the lightweight CPU wheel (`--index-url https://download.pytorch.org/whl/cpu`), cutting base image size from 2.2GB to under 700MB.
+2. **Pre-Encoded Offline Embeddings (`data/job_embeddings.npy`)**: Rather than encoding all 850 jobs on container startup (which creates a massive peak memory spike), embeddings are precomputed offline and loaded directly via memory-mapped NumPy in <2MB RAM.
+3. **Single-Threaded Execution**: PyTorch by default allocates worker threads across all container CPUs, rapidly exhausting free-tier memory. We enforce `OMP_NUM_THREADS=1` and `MALLOC_ARENA_MAX=2` in `Dockerfile` and `render.yaml`.
+4. **Resilient Dual-Engine Backend**: If cloud PostgreSQL (Neon) is not configured, the service seamlessly falls back to fast in-memory cosine & BM25-style keyword search over the local dataset without failing container healthchecks.
+
+### Deploying Your Own Instance on Render
+1. Fork or clone this repository: `https://github.com/Nainilshah04/JobMatch`.
+2. In [Render Dashboard](https://dashboard.render.com), click **New + > Blueprint** and select your repository (it automatically picks up `render.yaml`).
+3. (Optional) Set `DATABASE_URL` (e.g. from [neon.tech](https://neon.tech)) and `LLM_API_KEY` in Environment settings.
+4. Render builds the Docker container and exposes the service automatically on port `10000`.
 
 ---
 
