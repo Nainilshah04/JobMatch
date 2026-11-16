@@ -45,8 +45,9 @@
 
 ---
 
-## Design Decisions (Phase 1)
+## Design Decisions
 
+### Phase 1: Storage & Embedding
 1. **pgvector with HNSW Index**:
    - *Decision*: Used HNSW (`m=16, ef_construction=64`) on the 384-dimensional `embedding` column instead of IVFFlat.
    - *Tradeoff*: HNSW uses slightly more memory but offers superior query latency, avoids IVFFlat clustering warm-up/reindexing overhead as data scales, and maintains high recall.
@@ -62,6 +63,15 @@
 4. **Normalized Cosine Embeddings**:
    - *Decision*: Embeddings are L2-normalized during inference (`normalize_embeddings=True`).
    - *Tradeoff*: Allows cosine distance (`<=>`) to map cleanly to inner product and guarantees bounded similarity metrics between 0.0 and 1.0.
+
+### Phase 2: Retrieval & Hybrid Fusion
+5. **Reciprocal Rank Fusion (RRF, $k=60$) vs. Linear Combination**:
+   - *Decision*: Blended vector and keyword search using RRF with $k=60$ rather than linear weighted score fusion ($\alpha \cdot S_{vec} + (1-\alpha) \cdot S_{kw}$).
+   - *Tradeoff*: Cosine similarity $[0, 1]$ and `ts_rank` $[0, >10]$ have fundamentally non-comparable distributions. Linear weighting requires continuous calibration as data grows. RRF operates purely on ordinal ranks, making it scale-invariant, robust to outliers, and parameter-light.
+
+6. **Full-Text Parsing with `websearch_to_tsquery`**:
+   - *Decision*: Handled user input using `websearch_to_tsquery` falling back to `plainto_tsquery`.
+   - *Tradeoff*: Unlike raw `to_tsquery`, `websearch_to_tsquery` gracefully parses quotes, unclosed brackets, and logical operators without raising SQL runtime exceptions on user typos.
 
 ---
 
