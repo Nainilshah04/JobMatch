@@ -42,6 +42,24 @@ def get_embedding_model() -> SentenceTransformer:
     return SentenceTransformer(settings.EMBEDDING_MODEL_NAME)
 
 
+def build_job_embedding_text(
+    title: str,
+    company: str,
+    location: str,
+    skills: str,
+    description: str,
+) -> str:
+    """Format a dense, structured semantic text representation of a job posting for embedding."""
+    clean_desc = " ".join(description[:400].split())
+    return (
+        f"Job Title: {title}. "
+        f"Company: {company}. "
+        f"Location: {location}. "
+        f"Key Skills: {skills}. "
+        f"Summary: {clean_desc}"
+    )
+
+
 def compute_query_embedding(text: str) -> List[float]:
     """Generate a normalized 384-dimensional vector embedding for search input."""
     clean_text = " ".join(text[:500].split())
@@ -78,13 +96,19 @@ def _load_local_jobs() -> Tuple[List[dict], np.ndarray]:
 
     _LOCAL_JOBS_CACHE = jobs
 
-    # Load precomputed embeddings to prevent runtime encoding memory spikes
+    # Load precomputed embeddings via memory-mapping to prevent runtime memory spikes
     emb_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "job_embeddings.npy")
     if os.path.exists(emb_path):
-        _LOCAL_EMBEDDINGS_CACHE = np.load(emb_path)
+        _LOCAL_EMBEDDINGS_CACHE = np.load(emb_path, mmap_mode="r")
     else:
         texts = [
-            f"Title: {j['title']} | Company: {j['company']} | Skills: {j['skills']} | {j['description'][:300]}"
+            build_job_embedding_text(
+                title=j["title"],
+                company=j["company"],
+                location=j["location"],
+                skills=j["skills"],
+                description=j["description"],
+            )
             for j in jobs
         ]
         model = get_embedding_model()
@@ -160,9 +184,13 @@ def _search_local(
         return results
 
     if mode == "keyword":
-        sorted_order = np.argsort(-keyword_scores)[:top_k]
+        sorted_order = np.argsort(-keyword_scores)
         results = []
         for i in sorted_order:
+            if keyword_scores[i] <= 0:
+                continue
+            if len(results) >= top_k:
+                break
             j = jobs[candidate_indices[i]]
             results.append(
                 JobSearchResult(
@@ -190,8 +218,10 @@ def _search_local(
     for rank, pos in enumerate(vec_rank_order, start=1):
         rrf_scores[pos] = rrf_scores.get(pos, 0.0) + (1.0 / (rrf_k + rank))
 
+    # Drop candidates with keyword score == 0 before RRF so they don't add noise to the fusion
     for rank, pos in enumerate(kw_rank_order, start=1):
-        rrf_scores[pos] = rrf_scores.get(pos, 0.0) + (1.0 / (rrf_k + rank))
+        if keyword_scores[pos] > 0:
+            rrf_scores[pos] = rrf_scores.get(pos, 0.0) + (1.0 / (rrf_k + rank))
 
     sorted_by_rrf = sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
 

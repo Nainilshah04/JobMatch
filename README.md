@@ -1,7 +1,7 @@
 # JobMatch: Production-Style AI Job-Matching & Hybrid Retrieval Backend
 
 [![Render Live Demo](https://img.shields.io/badge/Render-Live%20Demo-46E3B7?style=flat-square&logo=render&logoColor=white)](https://jobmatch-qcqc.onrender.com)
-[![CI / Test Suite](https://img.shields.io/badge/pytest-16%20passed-success?style=flat-square)](tests/)
+[![CI](https://github.com/Nainilshah04/JobMatch/actions/workflows/ci.yml/badge.svg)](https://github.com/Nainilshah04/JobMatch/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.13-blue?style=flat-square)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Production%20Ready-009688?style=flat-square)](https://fastapi.tiangolo.com)
 [![pgvector](https://img.shields.io/badge/pgvector-HNSW%20Cosine-336791?style=flat-square)](https://github.com/pgvector/pgvector)
@@ -193,7 +193,7 @@ Deploying bi-encoder & cross-encoder transformer architectures within Render's s
 1. **CPU-Only PyTorch Wheel**: Standard PyTorch bundles CUDA binaries exceeding 1.5GB disk and ~350MB base RAM. We install the lightweight CPU wheel (`--index-url https://download.pytorch.org/whl/cpu`), cutting base image size from 2.2GB to under 700MB.
 2. **Pre-Encoded Offline Embeddings (`data/job_embeddings.npy`)**: Rather than encoding all 850 jobs on container startup (which creates a massive peak memory spike), embeddings are precomputed offline and loaded directly via memory-mapped NumPy in <2MB RAM.
 3. **Single-Threaded Execution**: PyTorch by default allocates worker threads across all container CPUs, rapidly exhausting free-tier memory. We enforce `OMP_NUM_THREADS=1` and `MALLOC_ARENA_MAX=2` in `Dockerfile` and `render.yaml`.
-4. **Resilient Dual-Engine Backend**: If cloud PostgreSQL (Neon) is not configured, the service seamlessly falls back to fast in-memory cosine & BM25-style keyword search over the local dataset without failing container healthchecks.
+4. **Resilient Dual-Engine Backend**: If cloud PostgreSQL (Neon) is not configured, the service seamlessly falls back to fast in-memory cosine & token-overlap keyword scoring over the local dataset without failing container healthchecks.
 
 ### Deploying Your Own Instance on Render
 1. Fork or clone this repository: `https://github.com/Nainilshah04/JobMatch`.
@@ -223,20 +223,20 @@ Deploying bi-encoder & cross-encoder transformer architectures within Render's s
 
 | Retrieval Pipeline | Recall@10 | Precision@10 | nDCG@10 | MRR | Avg Latency (ms) | Pipeline Description |
 | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
-| **Vector-only** | `5.0%` | `4.0%` | `0.0595` | `0.1591` | `264.4ms` | Dense semantic retrieval using all-MiniLM-L6-v2 embeddings (cosine similarity) |
-| **Keyword-only** | `5.5%` | `4.4%` | `0.0784` | `0.2213` | `257.2ms` | Lexical search using PostgreSQL tsvector / token overlap |
-| **Hybrid (RRF k=60)** | `7.0%` | `5.6%` | `0.0740` | `0.1790` | `263.4ms` | Reciprocal Rank Fusion uniting vector and keyword rank positions (k=60) |
-| **Hybrid + Rerank** | `6.5%` | `5.2%` | `0.0637` | `0.1453` | `5296.4ms` | Two-stage pipeline: top 20 hybrid candidates reranked by cross-encoder |
+| **Vector-only** | `6.0%` | `4.8%` | `0.0572` | `0.1050` | `272.8ms` | Dense semantic retrieval using all-MiniLM-L6-v2 embeddings (cosine similarity) |
+| **Keyword-only** | `5.5%` | `4.4%` | `0.0784` | `0.2213` | `271.3ms` | Lexical search using PostgreSQL tsvector / token overlap |
+| **Hybrid (RRF k=60)** | `7.0%` | `5.6%` | `0.0713` | `0.1585` | `274.5ms` | Reciprocal Rank Fusion uniting vector and keyword rank positions (k=60) |
+| **Hybrid + Rerank** | `7.5%` | `6.0%` | `0.0714` | `0.1487` | `5630.8ms` | Two-stage pipeline: top 20 hybrid candidates reranked by cross-encoder |
 
 #### Programmatic Benchmark Insights:
-- **Best Recall@10**: Hybrid (RRF k=60) (7.0%)
-- **Best Precision@10**: Hybrid (RRF k=60) (5.6%)
+- **Best Recall@10**: Hybrid + Rerank (7.5%)
+- **Best Precision@10**: Hybrid + Rerank (6.0%)
 - **Best nDCG@10**: Keyword-only (0.0784)
 - **Best MRR**: Keyword-only (0.2213)
-- **Reranker Impact vs Plain Hybrid**: In this benchmark, cross-encoder reranking decreased MRR (0.1790 -> 0.1453) and decreased Recall@10 (7.0% -> 6.5%).
+- **Reranker Impact vs Plain Hybrid**: In this benchmark, cross-encoder reranking decreased MRR (0.1585 -> 0.1487) and improved Recall@10 (7.0% -> 7.5%).
 
 ### Retrieval Analysis & Observations
-- **Hybrid Retrieval Impact**: In this benchmark, Hybrid (RRF k=60) achieved 7.0% Recall@10 compared to 5.0% for Vector-only and 5.5% for Keyword-only. Reciprocal Rank Fusion successfully aggregates candidates across both modalities, mitigating the individual blindspots of pure vector or lexical search.
-- **Cross-Encoder Reranker Performance**: In this benchmark, cross-encoder reranking yielded MRR 0.1453 versus plain Hybrid MRR 0.1790, and Recall@10 6.5% versus 7.0%. A plausible reason is domain divergence: `ms-marco-MiniLM-L-6-v2` is pretrained on general web-search question answering passages, which differs from structured recruiter queries that require strict alignment on specific technical skills, titles, and seniority levels.
+- **Hybrid Retrieval Impact**: In this benchmark, Hybrid (RRF k=60) achieved 7.0% Recall@10 compared to 6.0% for Vector-only and 5.5% for Keyword-only. Reciprocal Rank Fusion successfully aggregates candidates across both modalities, mitigating the individual blindspots of pure vector or lexical search.
+- **Cross-Encoder Reranker Performance**: In this benchmark, cross-encoder reranking yielded MRR 0.1487 versus plain Hybrid MRR 0.1585, and Recall@10 7.5% versus 7.0%. A plausible reason is domain divergence: `ms-marco-MiniLM-L-6-v2` is pretrained on general web-search question answering passages, which differs from structured recruiter queries that require strict alignment on specific technical skills, titles, and seniority levels.
 - **Benchmark Scale & Statistical Caveats**: This evaluation was executed over 25 queries with draft heuristic relevance labels on backend `local-fallback`. Small metric variances (e.g. ±1-2%) are not statistically definitive and serve as an architectural reference rather than production validation.
 

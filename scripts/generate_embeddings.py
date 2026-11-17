@@ -21,29 +21,10 @@ from sentence_transformers import SentenceTransformer
 
 from app.config import get_settings
 from app.db import get_db_connection
+from app.retrieval import build_job_embedding_text
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
-
-
-def build_job_embedding_text(title: str, company: str, location: str, skills: str, description: str) -> str:
-    """Format a dense, information-rich semantic representation of a job posting.
-    
-    Design Decision (Chunking & Context Window):
-    all-MiniLM-L6-v2 has a maximum context length of 256/512 wordpieces.
-    Rather than embedding the entire multi-page job description (which dilutes
-    critical title/skill signals and gets truncated arbitrarily), we construct
-    a structured representation emphasizing title and core required skills,
-    followed by the first 400 characters of the role overview.
-    """
-    clean_desc = " ".join(description[:400].split())
-    return (
-        f"Job Title: {title}. "
-        f"Company: {company}. "
-        f"Location: {location}. "
-        f"Key Skills: {skills}. "
-        f"Summary: {clean_desc}"
-    )
 
 
 def generate_and_store_embeddings(batch_size: int = 64, force: bool = False) -> int:

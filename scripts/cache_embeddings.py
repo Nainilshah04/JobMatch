@@ -2,6 +2,7 @@
 
 import csv
 import os
+import sys
 import numpy as np
 import torch
 from sentence_transformers import SentenceTransformer
@@ -10,6 +11,10 @@ from sentence_transformers import SentenceTransformer
 torch.set_num_threads(1)
 
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, base_dir)
+
+from app.retrieval import build_job_embedding_text
+
 csv_path = os.path.join(base_dir, "data", "jobs.csv")
 out_path = os.path.join(base_dir, "data", "job_embeddings.npy")
 
@@ -17,7 +22,13 @@ with open(csv_path, mode="r", encoding="utf-8") as f:
     jobs = list(csv.DictReader(f))
 
 texts = [
-    f"Title: {j['title']} | Company: {j['company']} | Skills: {j['skills']} | {j['description'][:300]}"
+    build_job_embedding_text(
+        title=j["title"],
+        company=j["company"],
+        location=j["location"],
+        skills=j["skills"],
+        description=j["description"],
+    )
     for j in jobs
 ]
 
