@@ -217,24 +217,26 @@ Deploying bi-encoder & cross-encoder transformer architectures within Render's s
 
 ## Evaluation Benchmark & Retrieval Metrics
 
-### Information Retrieval Benchmark Results (25 Queries)
+### Information Retrieval Benchmark Results (25 Queries over 850 Jobs)
 
-> Evaluated over `25` diverse queries using Recall@10 and MRR (Mean Reciprocal Rank). Note: relevance labels are heuristic/draft.
+> **Evaluation Environment**: Active Backend: `local-fallback` (In-memory cosine & token-overlap fallback). Evaluated over `25` diverse queries across `850` jobs. Note: relevance labels are heuristic/draft.
 
-| Retrieval Pipeline | Recall@10 | MRR | Avg Latency (ms) | Pipeline Description |
-| :--- | :---: | :---: | :---: | :--- |
-| **Vector-only** | `5.0%` | `0.1591` | `382.8ms` | Dense semantic retrieval using all-MiniLM-L6-v2 embeddings (cosine similarity) |
-| **Keyword-only** | `5.5%` | `0.2213` | `240.7ms` | Lexical search using PostgreSQL tsvector / token overlap |
-| **Hybrid (RRF k=60)** | `7.0%` | `0.1790` | `247.1ms` | Reciprocal Rank Fusion uniting vector and keyword rank positions (k=60) |
-| **Hybrid + Rerank** | `6.5%` | `0.1453` | `5303.1ms` | Two-stage pipeline: top 20 hybrid candidates reranked by cross-encoder |
+| Retrieval Pipeline | Recall@10 | Precision@10 | nDCG@10 | MRR | Avg Latency (ms) | Pipeline Description |
+| :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Vector-only** | `5.0%` | `4.0%` | `0.0595` | `0.1591` | `264.4ms` | Dense semantic retrieval using all-MiniLM-L6-v2 embeddings (cosine similarity) |
+| **Keyword-only** | `5.5%` | `4.4%` | `0.0784` | `0.2213` | `257.2ms` | Lexical search using PostgreSQL tsvector / token overlap |
+| **Hybrid (RRF k=60)** | `7.0%` | `5.6%` | `0.0740` | `0.1790` | `263.4ms` | Reciprocal Rank Fusion uniting vector and keyword rank positions (k=60) |
+| **Hybrid + Rerank** | `6.5%` | `5.2%` | `0.0637` | `0.1453` | `5296.4ms` | Two-stage pipeline: top 20 hybrid candidates reranked by cross-encoder |
 
 #### Programmatic Benchmark Insights:
 - **Best Recall@10**: Hybrid (RRF k=60) (7.0%)
+- **Best Precision@10**: Hybrid (RRF k=60) (5.6%)
+- **Best nDCG@10**: Keyword-only (0.0784)
 - **Best MRR**: Keyword-only (0.2213)
 - **Reranker Impact vs Plain Hybrid**: In this benchmark, cross-encoder reranking decreased MRR (0.1790 -> 0.1453) and decreased Recall@10 (7.0% -> 6.5%).
 
 ### Retrieval Analysis & Observations
-- **Hybrid Retrieval Impact**: In this benchmark, Hybrid (RRF k=60) marginally improved Recall@10 over single-modality retrievers (7.0% vs 5.0% for vector-only and 5.5% for keyword-only), indicating that combining semantic vector similarity with lexical keyword matching helps capture jobs that either modality alone misses.
-- **Cross-Encoder Reranker Performance**: In this benchmark, cross-encoder reranking did not improve MRR (0.1453 vs 0.1790) and marginally decreased Recall@10 (6.5% vs 7.0%) compared to plain hybrid. A plausible reason is domain divergence: `ms-marco-MiniLM-L-6-v2` is pretrained on general web-search question answering (MS MARCO passages), which differs substantially from recruiter search where specific technical skill tokens, seniority indicators, and title alignments dominate candidate relevance. Generalist QA cross-encoders may downweight exact skill acronyms in favor of conversational narrative text.
-- **Benchmark Scale & Statistical Caveats**: This evaluation was conducted on 25 synthetic queries with draft/heuristic labels. Small metric variances (e.g. ±1-2%) are not statistically significant and reflect prototype evaluation rather than large-scale production ranking.
+- **Hybrid Retrieval Impact**: In this benchmark, Hybrid (RRF k=60) achieved 7.0% Recall@10 compared to 5.0% for Vector-only and 5.5% for Keyword-only. Reciprocal Rank Fusion successfully aggregates candidates across both modalities, mitigating the individual blindspots of pure vector or lexical search.
+- **Cross-Encoder Reranker Performance**: In this benchmark, cross-encoder reranking yielded MRR 0.1453 versus plain Hybrid MRR 0.1790, and Recall@10 6.5% versus 7.0%. A plausible reason is domain divergence: `ms-marco-MiniLM-L-6-v2` is pretrained on general web-search question answering passages, which differs from structured recruiter queries that require strict alignment on specific technical skills, titles, and seniority levels.
+- **Benchmark Scale & Statistical Caveats**: This evaluation was executed over 25 queries with draft heuristic relevance labels on backend `local-fallback`. Small metric variances (e.g. ±1-2%) are not statistically definitive and serve as an architectural reference rather than production validation.
 

@@ -23,6 +23,12 @@ from app.models import JobSearchResult
 
 logger = logging.getLogger(__name__)
 
+
+def get_active_backend() -> str:
+    """Return the active storage/retrieval backend identifier ('postgres+pgvector' or 'local-fallback')."""
+    return "postgres+pgvector" if is_db_connected() else "local-fallback"
+
+
 # Cached in-memory dataset for offline/local resilience
 _LOCAL_JOBS_CACHE: Optional[List[dict]] = None
 _LOCAL_EMBEDDINGS_CACHE: Optional[np.ndarray] = None
