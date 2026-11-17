@@ -221,8 +221,8 @@ Deploying bi-encoder & cross-encoder transformer architectures within Render's s
    - Currently, ingestion runs via batch script. A production iteration would use event-driven change-data-capture (CDC via Debezium / Kafka) to embed new job postings in real time as companies publish them.
 3. **Candidate Personalization Profile**:
    - Extending beyond static queries to maintain candidate preference embeddings (salary expectations, career trajectory, remote preferences).
-4. **Heuristic Evaluation Benchmark Labels**:
-   - The 25 evaluation queries in `eval/queries.json` currently use heuristic/draft relevance labels derived via skill & keyword matching across `data/jobs.csv`. While effective for relative pipeline comparisons, production ranking evaluation requires human recruiter-annotated judgments.
+4. **Heuristic Evaluation Benchmark Labels & Fallback Scope**:
+   - Relevance labels were derived heuristically from keyword/skill matching, which likely favours keyword retrieval; these results should be read as a rough comparison, not proof of real-world quality. Additionally, the benchmark ran only on the `local-fallback` backend, so the Postgres/pgvector/FTS path was not evaluated in this run. Production validation requires human recruiter-annotated judgments across both backends.
 
 
 ## Evaluation Benchmark & Retrieval Metrics
@@ -233,10 +233,12 @@ Deploying bi-encoder & cross-encoder transformer architectures within Render's s
 
 | Retrieval Pipeline | Recall@10 | Precision@10 | nDCG@10 | MRR | Avg Latency (ms) | Pipeline Description |
 | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
-| **Vector-only** | `6.0%` | `4.8%` | `0.0572` | `0.1050` | `245.7ms` | Dense semantic retrieval using all-MiniLM-L6-v2 embeddings (cosine similarity) |
-| **Keyword-only** | `5.5%` | `4.4%` | `0.0784` | `0.2213` | `242.7ms` | Lexical search using PostgreSQL tsvector / token overlap |
-| **Hybrid (RRF k=60)** | `7.0%` | `5.6%` | `0.0713` | `0.1585` | `240.4ms` | Reciprocal Rank Fusion uniting vector and keyword rank positions (k=60) |
-| **Hybrid + Rerank** | `7.5%` | `6.0%` | `0.0714` | `0.1487` | `4865.0ms` | Two-stage pipeline: top 20 hybrid candidates reranked by cross-encoder |
+| **Vector-only** | `6.0%` | `4.8%` | `0.0572` | `0.1050` | `158.8ms` | Dense semantic retrieval using all-MiniLM-L6-v2 embeddings (cosine similarity) |
+| **Keyword-only** | `5.5%` | `4.4%` | `0.0784` | `0.2213` | `117.9ms` | Lexical search using PostgreSQL tsvector / token overlap |
+| **Hybrid (RRF k=60)** | `7.0%` | `5.6%` | `0.0713` | `0.1585` | `157.4ms` | Reciprocal Rank Fusion uniting vector and keyword rank positions (k=60) |
+| **Hybrid + Rerank** | `7.5%` | `6.0%` | `0.0714` | `0.1487` | `2753.6ms` | Two-stage pipeline: top 20 hybrid candidates reranked by cross-encoder |
+
+> *Note: Latency measured on local-fallback, single process; rerank latency includes cross-encoder CPU inference.*
 
 #### Programmatic Benchmark Insights:
 - **Best Recall@10**: Hybrid + Rerank (7.5%)
@@ -246,7 +248,9 @@ Deploying bi-encoder & cross-encoder transformer architectures within Render's s
 - **Reranker Impact vs Plain Hybrid**: In this benchmark, cross-encoder reranking decreased MRR (0.1585 -> 0.1487) and improved Recall@10 (7.0% -> 7.5%).
 
 ### Retrieval Analysis & Observations
-- **Hybrid Retrieval Impact**: In this benchmark, Hybrid (RRF k=60) achieved 7.0% Recall@10 compared to 6.0% for Vector-only and 5.5% for Keyword-only. Reciprocal Rank Fusion successfully aggregates candidates across both modalities, mitigating the individual blindspots of pure vector or lexical search.
+- **Hybrid Retrieval Impact**: In this benchmark, Hybrid (RRF k=60) achieved 7.0% Recall@10 compared to 6.0% for Vector-only and 5.5% for Keyword-only. On MRR, Hybrid scored 0.1585 vs 0.1050 for Vector-only and 0.2213 for Keyword-only (However, Keyword-only achieved higher MRR (0.2213) than Hybrid (0.1585).). On nDCG@10, Hybrid scored 0.0713 vs 0.0572 for Vector-only and 0.0784 for Keyword-only (Keyword-only also achieved higher nDCG@10 (0.0784) than Hybrid (0.0713).). Reciprocal Rank Fusion successfully aggregates candidates across both modalities to boost recall, but keyword-matching dominates top-1 precision on this dataset.
+- **Relevance Label Caveat**: Relevance labels were derived heuristically from keyword/skill matching, which likely favours keyword retrieval; these results should be read as a rough comparison, not proof of real-world quality.
+- **Backend Scope**: This benchmark ran only on the `local-fallback` backend (in-memory cosine similarity and token-overlap scoring); the Postgres/pgvector/FTS path was not evaluated.
 - **Cross-Encoder Reranker Performance**: In this benchmark, cross-encoder reranking yielded MRR 0.1487 versus plain Hybrid MRR 0.1585, and Recall@10 7.5% versus 7.0%. A plausible reason is domain divergence: `ms-marco-MiniLM-L-6-v2` is pretrained on general web-search question answering passages, which differs from structured recruiter queries that require strict alignment on specific technical skills, titles, and seniority levels.
 - **Benchmark Scale & Statistical Caveats**: This evaluation was executed over 25 queries with draft heuristic relevance labels on backend `local-fallback`. Small metric variances (e.g. ±1-2%) are not statistically definitive and serve as an architectural reference rather than production validation.
 

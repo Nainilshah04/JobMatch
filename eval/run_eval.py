@@ -216,6 +216,8 @@ def format_markdown_table(
         table.append(f"| **{mode}** | `{recall_pct}` | `{prec_pct}` | `{ndcg_val}` | `{mrr_val}` | `{latency}` | {note} |")
 
     table.append("")
+    table.append("> *Note: Latency measured on local-fallback, single process; rerank latency includes cross-encoder CPU inference.*")
+    table.append("")
     table.append("#### Programmatic Benchmark Insights:")
 
     best_recall = max(results.items(), key=lambda x: x[1].get("recall", 0.0))
@@ -244,11 +246,45 @@ def format_markdown_table(
 
     table.append("")
     table.append("### Retrieval Analysis & Observations")
-    table.append(
-        f"- **Hybrid Retrieval Impact**: In this benchmark, Hybrid (RRF k=60) achieved {results['Hybrid (RRF k=60)']['recall']*100:.1f}% Recall@10 "
-        f"compared to {results['Vector-only']['recall']*100:.1f}% for Vector-only and {results['Keyword-only']['recall']*100:.1f}% for Keyword-only. "
-        "Reciprocal Rank Fusion successfully aggregates candidates across both modalities, mitigating the individual blindspots of pure vector or lexical search."
+
+    # Dynamic comparison of Hybrid vs Vector-only and Keyword-only across metrics
+    hyb_rec = results["Hybrid (RRF k=60)"]["recall"] * 100
+    vec_rec = results["Vector-only"]["recall"] * 100
+    kw_rec = results["Keyword-only"]["recall"] * 100
+
+    hyb_mrr = results["Hybrid (RRF k=60)"]["mrr"]
+    vec_mrr = results["Vector-only"]["mrr"]
+    kw_mrr = results["Keyword-only"]["mrr"]
+
+    hyb_ndcg = results["Hybrid (RRF k=60)"]["ndcg"]
+    vec_ndcg = results["Vector-only"]["ndcg"]
+    kw_ndcg = results["Keyword-only"]["ndcg"]
+
+    mrr_note = (
+        f"However, Keyword-only achieved higher MRR ({kw_mrr:.4f}) than Hybrid ({hyb_mrr:.4f})."
+        if kw_mrr > hyb_mrr
+        else f"Hybrid achieved higher MRR ({hyb_mrr:.4f}) than Keyword-only ({kw_mrr:.4f})."
     )
+    ndcg_note = (
+        f"Keyword-only also achieved higher nDCG@10 ({kw_ndcg:.4f}) than Hybrid ({hyb_ndcg:.4f})."
+        if kw_ndcg > hyb_ndcg
+        else f"Hybrid achieved higher nDCG@10 ({hyb_ndcg:.4f}) than Keyword-only ({kw_ndcg:.4f})."
+    )
+
+    table.append(
+        f"- **Hybrid Retrieval Impact**: In this benchmark, Hybrid (RRF k=60) achieved {hyb_rec:.1f}% Recall@10 "
+        f"compared to {vec_rec:.1f}% for Vector-only and {kw_rec:.1f}% for Keyword-only. "
+        f"On MRR, Hybrid scored {hyb_mrr:.4f} vs {vec_mrr:.4f} for Vector-only and {kw_mrr:.4f} for Keyword-only ({mrr_note}). "
+        f"On nDCG@10, Hybrid scored {hyb_ndcg:.4f} vs {vec_ndcg:.4f} for Vector-only and {kw_ndcg:.4f} for Keyword-only ({ndcg_note}). "
+        "Reciprocal Rank Fusion successfully aggregates candidates across both modalities to boost recall, but keyword-matching dominates top-1 precision on this dataset."
+    )
+    table.append(
+        "- **Relevance Label Caveat**: Relevance labels were derived heuristically from keyword/skill matching, which likely favours keyword retrieval; these results should be read as a rough comparison, not proof of real-world quality."
+    )
+    if backend == "local-fallback":
+        table.append(
+            "- **Backend Scope**: This benchmark ran only on the `local-fallback` backend (in-memory cosine similarity and token-overlap scoring); the Postgres/pgvector/FTS path was not evaluated."
+        )
     table.append(
         f"- **Cross-Encoder Reranker Performance**: In this benchmark, cross-encoder reranking yielded MRR {results['Hybrid + Rerank']['mrr']:.4f} "
         f"versus plain Hybrid MRR {results['Hybrid (RRF k=60)']['mrr']:.4f}, and Recall@10 {results['Hybrid + Rerank']['recall']*100:.1f}% "
