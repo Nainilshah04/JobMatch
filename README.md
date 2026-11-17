@@ -62,10 +62,12 @@
 
 ---
 
-## Why Hybrid Search Beats Vector-Only Search
+## Why Hybrid Search (Hybrid vs Vector-Only)
 
 In search and recommendation systems, a central architectural question is:
 > *"Why not just embed the query and use pure cosine vector search across all jobs?"*
+
+In this benchmark, Hybrid (RRF k=60) improved Recall@10 and MRR over Vector-only, but Keyword-only achieved higher MRR and nDCG than Hybrid (see Evaluation Benchmark for detailed metrics).
 
 ### The Tradeoff Analysis:
 
@@ -99,7 +101,7 @@ In search and recommendation systems, a central architectural question is:
 ### Phase 2 & 3: Retrieval & Two-Stage Reranking
 4. **Two-Stage Retrieve-Then-Rerank Architecture**:
    - *Decision*: Retrieve the top 20 candidates via hybrid search and rerank them using `cross-encoder/ms-marco-MiniLM-L-6-v2`.
-   - *Tradeoff*: Bi-encoders allow sub-millisecond approximate nearest neighbors ($O(\log N)$ via HNSW) but compute vector representations independently without cross-token attention. A Cross-Encoder computes full token-to-token cross-attention for maximum ranking precision ($O(N)$), which is computationally feasible only on a filtered candidate pool (top 20).
+   - *Tradeoff*: Bi-encoders allow sub-millisecond approximate nearest neighbors ($O(\log N)$ via HNSW) but compute vector representations independently without cross-token attention. A Cross-Encoder computes full token-to-token cross-attention ($O(N)$), which is computationally feasible only on a filtered candidate pool (top 20). In this benchmark the cross-encoder did not improve MRR over plain hybrid (see Analysis).
 5. **Cross-Encoder Logit Sigmoid Calibration**:
    - *Decision*: Applied sigmoid $\sigma(s) = \frac{1}{1 + e^{-s}}$ to convert raw cross-encoder logits into calibrated probabilities $[0, 1]$.
    - *Tradeoff*: Produces intuitive, normalized match confidence scores while preserving exact ranking order.
@@ -110,7 +112,7 @@ In search and recommendation systems, a central architectural question is:
    - *Tradeoff*: Retrying on invalid output prevents corrupted JSON crashes at the expense of extra round-trip latency for malformed responses.
 7. **Resilient Local Fallback Engine**:
    - *Decision*: Added an in-memory vector & keyword fallback engine over `data/jobs.csv` when PostgreSQL is offline or unconfigured.
-   - *Tradeoff*: Guarantees 100% system availability for local demos and offline testing without blocking backend endpoints.
+   - *Tradeoff*: Guarantees 100% system availability for local demos and offline testing without blocking backend endpoints. Note that the local fallback runs RRF over all candidates, while the Postgres path fuses top-50 pools from each retriever, so the two backends are not exactly equivalent.
 8. **PDF Resume Text Extraction**:
    - *Decision*: Implemented `POST /upload-resume` using lightweight `pypdf` with drag-and-drop UI integration.
    - *Tradeoff*: Zero external OCR service dependencies; fast text extraction from real candidate PDFs.
@@ -193,13 +195,12 @@ The public live demo deployed on Render runs on the **`local-fallback`** engine 
 
 **Why this architecture is used for the live demo**:
 - **Free-Tier Memory Constraints**: Render's free tier provides a strict 512MB RAM limit. Serving precomputed embeddings in-memory with `mmap` avoids connection overhead and keeps memory consumption well within limits.
-- **Zero Cold-Start Delay**: Eliminates external database network latency and connection pool timeout issues on free cloud tiers.
 - **Zero-Code Backend Switching**: When a hosted PostgreSQL database (e.g., Neon or Supabase with `pgvector`) is provisioned and `DATABASE_URL` is set in the environment, the application dynamically connects and executes vector similarity queries via PostgreSQL HNSW indexing instead.
 You can verify which backend is active at any time via `GET /health` (inspecting the `"backend"` property).
 
 ### 512MB RAM Optimization Strategies for Free-Tier Cloud Containers
 Deploying bi-encoder & cross-encoder transformer architectures within Render's strict **512MB RAM ceiling** required critical engineering optimizations:
-1. **CPU-Only PyTorch Wheel**: Standard PyTorch bundles CUDA binaries exceeding 1.5GB disk and ~350MB base RAM. We install the lightweight CPU wheel (`--index-url https://download.pytorch.org/whl/cpu`), cutting base image size from 2.2GB to under 700MB.
+1. **CPU-Only PyTorch Wheel**: Standard PyTorch bundles CUDA binaries exceeding 1.5GB disk and substantial base RAM. We install the lightweight CPU wheel (`--index-url https://download.pytorch.org/whl/cpu`), significantly reducing image footprint and container memory usage.
 2. **Pre-Encoded Offline Embeddings (`data/job_embeddings.npy`)**: Rather than encoding all 850 jobs on container startup (which creates a massive peak memory spike), embeddings are precomputed offline and loaded directly via memory-mapped NumPy in <2MB RAM.
 3. **Single-Threaded Execution**: PyTorch by default allocates worker threads across all container CPUs, rapidly exhausting free-tier memory. We enforce `OMP_NUM_THREADS=1` and `MALLOC_ARENA_MAX=2` in `Dockerfile` and `render.yaml`.
 4. **Resilient Dual-Engine Backend**: If cloud PostgreSQL (Neon) is not configured, the service seamlessly falls back to fast in-memory cosine & token-overlap keyword scoring over the local dataset without failing container healthchecks.
