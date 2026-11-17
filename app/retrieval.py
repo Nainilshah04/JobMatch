@@ -138,10 +138,12 @@ def _search_local(
     if not candidate_indices:
         return []
 
-    # Vector scoring
-    query_vec = np.array(compute_query_embedding(query_text))
-    candidate_embeddings = embeddings[candidate_indices]
-    cosine_sims = np.dot(candidate_embeddings, query_vec)
+    # Vector scoring: Skip computation when mode == 'keyword' so keyword latency is accurate
+    cosine_sims = None
+    if mode != "keyword":
+        query_vec = np.array(compute_query_embedding(query_text))
+        candidate_embeddings = embeddings[candidate_indices]
+        cosine_sims = np.dot(candidate_embeddings, query_vec)
 
     # Keyword scoring
     query_tokens = set(re.findall(r"\w+", query_text.lower()))
