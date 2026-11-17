@@ -86,8 +86,11 @@ def health_check():
     except Exception as e:
         db_status = f"error: {str(e)}"
 
+    backend = "postgres" if db_status == "connected" else "local-fallback"
+
     return {
         "status": "ok",
+        "backend": backend,
         "service": "JobMatch",
         "version": "1.0.0",
         "database": {

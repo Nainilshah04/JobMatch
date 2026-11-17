@@ -188,6 +188,15 @@ JobMatch is deployed live in production on Render:
 > 📖 **Interactive OpenAPI Specs**: [https://jobmatch-qcqc.onrender.com/docs](https://jobmatch-qcqc.onrender.com/docs)  
 > 🩺 **Healthcheck Endpoint**: [https://jobmatch-qcqc.onrender.com/health](https://jobmatch-qcqc.onrender.com/health)
 
+### What the Live Demo Actually Runs
+The public live demo deployed on Render runs on the **`local-fallback`** engine (in-memory NumPy cosine similarity + token-overlap keyword scoring over precomputed embeddings in `data/job_embeddings.npy`).
+
+**Why this architecture is used for the live demo**:
+- **Free-Tier Memory Constraints**: Render's free tier provides a strict 512MB RAM limit. Serving precomputed embeddings in-memory with `mmap` avoids connection overhead and keeps memory consumption well within limits.
+- **Zero Cold-Start Delay**: Eliminates external database network latency and connection pool timeout issues on free cloud tiers.
+- **Zero-Code Backend Switching**: When a hosted PostgreSQL database (e.g., Neon or Supabase with `pgvector`) is provisioned and `DATABASE_URL` is set in the environment, the application dynamically connects and executes vector similarity queries via PostgreSQL HNSW indexing instead.
+You can verify which backend is active at any time via `GET /health` (inspecting the `"backend"` property).
+
 ### 512MB RAM Optimization Strategies for Free-Tier Cloud Containers
 Deploying bi-encoder & cross-encoder transformer architectures within Render's strict **512MB RAM ceiling** required critical engineering optimizations:
 1. **CPU-Only PyTorch Wheel**: Standard PyTorch bundles CUDA binaries exceeding 1.5GB disk and ~350MB base RAM. We install the lightweight CPU wheel (`--index-url https://download.pytorch.org/whl/cpu`), cutting base image size from 2.2GB to under 700MB.

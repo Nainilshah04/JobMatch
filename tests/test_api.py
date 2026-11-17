@@ -16,6 +16,8 @@ def test_health_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "ok"
+    assert "backend" in data
+    assert data["backend"] in ["postgres", "local-fallback"]
     assert data["service"] == "JobMatch"
     assert "database" in data
     assert "models" in data
