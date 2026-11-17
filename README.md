@@ -232,10 +232,10 @@ Deploying bi-encoder & cross-encoder transformer architectures within Render's s
 
 | Retrieval Pipeline | Recall@10 | Precision@10 | nDCG@10 | MRR | Avg Latency (ms) | Pipeline Description |
 | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
-| **Vector-only** | `6.0%` | `4.8%` | `0.0572` | `0.1050` | `272.8ms` | Dense semantic retrieval using all-MiniLM-L6-v2 embeddings (cosine similarity) |
-| **Keyword-only** | `5.5%` | `4.4%` | `0.0784` | `0.2213` | `271.3ms` | Lexical search using PostgreSQL tsvector / token overlap |
-| **Hybrid (RRF k=60)** | `7.0%` | `5.6%` | `0.0713` | `0.1585` | `274.5ms` | Reciprocal Rank Fusion uniting vector and keyword rank positions (k=60) |
-| **Hybrid + Rerank** | `7.5%` | `6.0%` | `0.0714` | `0.1487` | `5630.8ms` | Two-stage pipeline: top 20 hybrid candidates reranked by cross-encoder |
+| **Vector-only** | `6.0%` | `4.8%` | `0.0572` | `0.1050` | `245.7ms` | Dense semantic retrieval using all-MiniLM-L6-v2 embeddings (cosine similarity) |
+| **Keyword-only** | `5.5%` | `4.4%` | `0.0784` | `0.2213` | `242.7ms` | Lexical search using PostgreSQL tsvector / token overlap |
+| **Hybrid (RRF k=60)** | `7.0%` | `5.6%` | `0.0713` | `0.1585` | `240.4ms` | Reciprocal Rank Fusion uniting vector and keyword rank positions (k=60) |
+| **Hybrid + Rerank** | `7.5%` | `6.0%` | `0.0714` | `0.1487` | `4865.0ms` | Two-stage pipeline: top 20 hybrid candidates reranked by cross-encoder |
 
 #### Programmatic Benchmark Insights:
 - **Best Recall@10**: Hybrid + Rerank (7.5%)
