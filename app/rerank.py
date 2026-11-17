@@ -46,7 +46,7 @@ def rerank_with_cross_encoder(
     fast vector index search but missing cross-token interactions.
     A Cross-Encoder performs joint cross-attention across all (query, document) token pairs.
     While computationally too heavy to evaluate across thousands of jobs in the database,
-    evaluating it on the top 20 hybrid candidates provides state-of-the-art precision
+    evaluating it on the top 20 hybrid candidates provides joint cross-attention scoring
     with sub-50ms latency.
     """
     if not candidates:

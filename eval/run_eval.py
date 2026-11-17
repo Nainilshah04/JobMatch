@@ -126,21 +126,21 @@ def run_evaluation(queries_path: str, top_k: int = 10) -> Dict[str, Dict[str, fl
 
 
 def format_markdown_table(results: Dict[str, Dict[str, float]], num_queries: int) -> str:
-    """Format evaluation benchmark results as a Markdown table."""
+    """Format evaluation benchmark results as a Markdown table with programmatically derived insights."""
     table = [
-        "### Information Retrieval Benchmark Results (25 Queries)",
+        f"### Information Retrieval Benchmark Results ({num_queries} Queries)",
         "",
-        f"> Evaluated over `{num_queries}` diverse queries across `850` job postings using Recall@10 and MRR (Mean Reciprocal Rank).",
+        f"> Evaluated over `{num_queries}` diverse queries using Recall@10 and MRR (Mean Reciprocal Rank). Note: relevance labels are heuristic/draft.",
         "",
-        "| Retrieval Pipeline | Recall@10 | MRR | Avg Latency (ms) | Notes |",
+        "| Retrieval Pipeline | Recall@10 | MRR | Avg Latency (ms) | Pipeline Description |",
         "| :--- | :---: | :---: | :---: | :--- |",
     ]
 
     notes = {
-        "Vector-only": "Captures semantic synonymy; susceptible to lexical drift",
-        "Keyword-only": "High precision on exact tech keywords; zero recall on paraphrased titles",
-        "Hybrid (RRF k=60)": "Combines lexical and dense matches; eliminates modality blindspots",
-        "Hybrid + Rerank": "State-of-the-art precision; joint cross-attention over top 20 candidates",
+        "Vector-only": "Dense semantic retrieval using all-MiniLM-L6-v2 embeddings (cosine similarity)",
+        "Keyword-only": "Lexical search using PostgreSQL tsvector / token overlap",
+        "Hybrid (RRF k=60)": "Reciprocal Rank Fusion uniting vector and keyword rank positions (k=60)",
+        "Hybrid + Rerank": "Two-stage pipeline: top 20 hybrid candidates reranked by cross-encoder",
     }
 
     for mode, metrics in results.items():
@@ -151,9 +151,41 @@ def format_markdown_table(results: Dict[str, Dict[str, float]], num_queries: int
         table.append(f"| **{mode}** | `{recall_pct}` | `{mrr_val}` | `{latency}` | {note} |")
 
     table.append("")
-    table.append("#### Key Insights for Technical Interviews:")
-    table.append("- **Why Hybrid beats Vector-only**: Vector search excels at conceptual matching but struggles with exact acronyms (e.g. `dbt`, `gRPC`, `Kafka`). Hybrid RRF achieves higher recall by uniting semantic embeddings with inverted index tokens.")
-    table.append("- **Why Two-Stage Rerank achieves highest MRR**: The cross-encoder directly attends to all token interactions between query and job, pushing the most relevant role to rank #1 (highest MRR).")
+    table.append("#### Programmatic Benchmark Insights:")
+
+    best_recall = max(results.items(), key=lambda x: x[1].get("recall", 0.0))
+    best_mrr = max(results.items(), key=lambda x: x[1].get("mrr", 0.0))
+    table.append(f"- **Best Recall@10**: {best_recall[0]} ({best_recall[1]['recall'] * 100:.1f}%)")
+    table.append(f"- **Best MRR**: {best_mrr[0]} ({best_mrr[1]['mrr']:.4f})")
+
+    if "Hybrid + Rerank" in results and "Hybrid (RRF k=60)" in results:
+        hyb = results["Hybrid (RRF k=60)"]
+        rr = results["Hybrid + Rerank"]
+        mrr_diff = rr.get("mrr", 0.0) - hyb.get("mrr", 0.0)
+        rec_diff = rr.get("recall", 0.0) - hyb.get("recall", 0.0)
+
+        mrr_status = "improved" if mrr_diff > 0.001 else ("decreased" if mrr_diff < -0.001 else "was unchanged")
+        rec_status = "improved" if rec_diff > 0.001 else ("decreased" if rec_diff < -0.001 else "was unchanged")
+        table.append(
+            f"- **Reranker Impact vs Plain Hybrid**: In this benchmark, cross-encoder reranking {mrr_status} MRR "
+            f"({hyb.get('mrr', 0.0):.4f} -> {rr.get('mrr', 0.0):.4f}) and {rec_status} Recall@10 "
+            f"({hyb.get('recall', 0.0)*100:.1f}% -> {rr.get('recall', 0.0)*100:.1f}%)."
+        )
+
+    table.append("")
+    table.append("### Retrieval Analysis & Observations")
+    table.append(
+        "- **Hybrid Retrieval Impact**: In this benchmark, Hybrid (RRF k=60) marginally improved Recall@10 over single-modality retrievers "
+        "(7.0% vs 5.0% for vector-only and 5.5% for keyword-only), indicating that combining semantic vector similarity with lexical keyword matching helps capture jobs that either modality alone misses."
+    )
+    table.append(
+        "- **Cross-Encoder Reranker Performance**: In this benchmark, cross-encoder reranking did not improve MRR (0.1453 vs 0.1790) and marginally decreased Recall@10 (6.5% vs 7.0%) compared to plain hybrid. "
+        "A plausible reason is domain divergence: `ms-marco-MiniLM-L-6-v2` is pretrained on general web-search question answering (MS MARCO passages), which differs substantially from recruiter search where specific technical skill tokens, seniority indicators, and title alignments dominate candidate relevance. Generalist QA cross-encoders may downweight exact skill acronyms in favor of conversational narrative text."
+    )
+    table.append(
+        "- **Benchmark Scale & Statistical Caveats**: This evaluation was conducted on 25 synthetic queries with draft/heuristic labels. "
+        "Small metric variances (e.g. ±1-2%) are not statistically significant and reflect prototype evaluation rather than large-scale production ranking."
+    )
     table.append("")
     return "\n".join(table)
 

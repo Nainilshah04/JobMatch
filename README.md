@@ -64,7 +64,7 @@
 
 ## Why Hybrid Search Beats Vector-Only Search
 
-In technical interviews for search and recommendation roles (such as at **Elip**), interviewers frequently ask:
+In search and recommendation systems, a central architectural question is:
 > *"Why not just embed the query and use pure cosine vector search across all jobs?"*
 
 ### The Tradeoff Analysis:
@@ -80,19 +80,6 @@ In technical interviews for search and recommendation roles (such as at **Elip**
    - **RRF** operates strictly on ordinal rank positions:
      $$\text{RRF\_Score}(d) = \sum_{m \in \{\text{vector}, \text{keyword}\}} \frac{1}{60 + \text{rank}_m(d)}$$
      This guarantees scale-invariance, outlier dampening, and high recall without tuning arbitrary weight coefficients.
-
----
-
-## Information Retrieval Benchmark Results (25 Queries)
-
-Evaluated across `25` diverse technical recruiting benchmark queries over `850` job postings using **Recall@10** and **MRR (Mean Reciprocal Rank)** via `eval/run_eval.py`:
-
-| Retrieval Pipeline | Recall@10 | MRR | Avg Latency (ms) | Notes |
-| :--- | :---: | :---: | :---: | :--- |
-| **Vector-only** | `5.0%` | `0.1591` | `427.4ms` | Captures conceptual synonymy; susceptible to lexical drift |
-| **Keyword-only** | `5.5%` | `0.2213` | `47.1ms` | High precision on exact tech keywords; misses paraphrased titles |
-| **Hybrid (RRF k=60)** | **`7.0%`** | `0.1790` | `46.5ms` | **Highest Recall**: Combines lexical and semantic signals |
-| **Hybrid + Rerank** | `6.5%` | **`0.1453`** | `233.7ms` | **Highest Precision**: Full cross-attention over top 20 pool |
 
 ---
 
@@ -224,22 +211,30 @@ Deploying bi-encoder & cross-encoder transformer architectures within Render's s
    - Currently, ingestion runs via batch script. A production iteration would use event-driven change-data-capture (CDC via Debezium / Kafka) to embed new job postings in real time as companies publish them.
 3. **Candidate Personalization Profile**:
    - Extending beyond static queries to maintain candidate preference embeddings (salary expectations, career trajectory, remote preferences).
+4. **Heuristic Evaluation Benchmark Labels**:
+   - The 25 evaluation queries in `eval/queries.json` currently use heuristic/draft relevance labels derived via skill & keyword matching across `data/jobs.csv`. While effective for relative pipeline comparisons, production ranking evaluation requires human recruiter-annotated judgments.
 
 
 ## Evaluation Benchmark & Retrieval Metrics
 
 ### Information Retrieval Benchmark Results (25 Queries)
 
-> Evaluated over `25` diverse queries across `850` job postings using Recall@10 and MRR (Mean Reciprocal Rank).
+> Evaluated over `25` diverse queries using Recall@10 and MRR (Mean Reciprocal Rank). Note: relevance labels are heuristic/draft.
 
-| Retrieval Pipeline | Recall@10 | MRR | Avg Latency (ms) | Notes |
+| Retrieval Pipeline | Recall@10 | MRR | Avg Latency (ms) | Pipeline Description |
 | :--- | :---: | :---: | :---: | :--- |
-| **Vector-only** | `5.0%` | `0.1591` | `477.6ms` | Captures semantic synonymy; susceptible to lexical drift |
-| **Keyword-only** | `5.5%` | `0.2213` | `50.0ms` | High precision on exact tech keywords; zero recall on paraphrased titles |
-| **Hybrid (RRF k=60)** | `7.0%` | `0.1790` | `51.0ms` | Combines lexical and dense matches; eliminates modality blindspots |
-| **Hybrid + Rerank** | `6.5%` | `0.1453` | `311.4ms` | State-of-the-art precision; joint cross-attention over top 20 candidates |
+| **Vector-only** | `5.0%` | `0.1591` | `382.8ms` | Dense semantic retrieval using all-MiniLM-L6-v2 embeddings (cosine similarity) |
+| **Keyword-only** | `5.5%` | `0.2213` | `240.7ms` | Lexical search using PostgreSQL tsvector / token overlap |
+| **Hybrid (RRF k=60)** | `7.0%` | `0.1790` | `247.1ms` | Reciprocal Rank Fusion uniting vector and keyword rank positions (k=60) |
+| **Hybrid + Rerank** | `6.5%` | `0.1453` | `5303.1ms` | Two-stage pipeline: top 20 hybrid candidates reranked by cross-encoder |
 
-#### Key Insights for Technical Interviews:
-- **Why Hybrid beats Vector-only**: Vector search excels at conceptual matching but struggles with exact acronyms (e.g. `dbt`, `gRPC`, `Kafka`). Hybrid RRF achieves higher recall by uniting semantic embeddings with inverted index tokens.
-- **Why Two-Stage Rerank achieves highest MRR**: The cross-encoder directly attends to all token interactions between query and job, pushing the most relevant role to rank #1 (highest MRR).
+#### Programmatic Benchmark Insights:
+- **Best Recall@10**: Hybrid (RRF k=60) (7.0%)
+- **Best MRR**: Keyword-only (0.2213)
+- **Reranker Impact vs Plain Hybrid**: In this benchmark, cross-encoder reranking decreased MRR (0.1790 -> 0.1453) and decreased Recall@10 (7.0% -> 6.5%).
+
+### Retrieval Analysis & Observations
+- **Hybrid Retrieval Impact**: In this benchmark, Hybrid (RRF k=60) marginally improved Recall@10 over single-modality retrievers (7.0% vs 5.0% for vector-only and 5.5% for keyword-only), indicating that combining semantic vector similarity with lexical keyword matching helps capture jobs that either modality alone misses.
+- **Cross-Encoder Reranker Performance**: In this benchmark, cross-encoder reranking did not improve MRR (0.1453 vs 0.1790) and marginally decreased Recall@10 (6.5% vs 7.0%) compared to plain hybrid. A plausible reason is domain divergence: `ms-marco-MiniLM-L-6-v2` is pretrained on general web-search question answering (MS MARCO passages), which differs substantially from recruiter search where specific technical skill tokens, seniority indicators, and title alignments dominate candidate relevance. Generalist QA cross-encoders may downweight exact skill acronyms in favor of conversational narrative text.
+- **Benchmark Scale & Statistical Caveats**: This evaluation was conducted on 25 synthetic queries with draft/heuristic labels. Small metric variances (e.g. ±1-2%) are not statistically significant and reflect prototype evaluation rather than large-scale production ranking.
 
